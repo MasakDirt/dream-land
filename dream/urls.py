@@ -2,9 +2,11 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path
 
+from dream.views.dream import DreamListView
 from dream.views.emotion import EmotionCreateView
 from dream.views.index import index
 from dream.views.symbol import SymbolCreateView
+
 
 urlpatterns = [
     path("", index, name="index"),
@@ -18,6 +20,7 @@ urlpatterns = [
         EmotionCreateView.as_view(),
         name="emotion-create"
     ),
+    path("dreams/", DreamListView.as_view(), name="dream-list"),
 ]
 
 if settings.DEBUG:
