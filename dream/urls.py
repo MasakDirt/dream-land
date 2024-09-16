@@ -4,7 +4,9 @@ from django.urls import path
 
 from dream.views.commentary import (
     CommentAddRemoveLike,
-    CommentAddRemoveDislike, CommentaryCreateView
+    CommentAddRemoveDislike,
+    CommentaryCreateView,
+    CommentaryDeleteView
 )
 from dream.views.dream import (
     DreamListView,
@@ -13,7 +15,8 @@ from dream.views.dream import (
     DreamUpdateView,
     DreamDeleteView,
     DreamAddRemoveLike,
-    DreamAddRemoveDislike, DreamStatisticView
+    DreamAddRemoveDislike,
+    DreamStatisticView
 )
 from dream.views.emotion import EmotionCreateView
 from dream.views.index import index
@@ -72,6 +75,11 @@ urlpatterns = [
         "users/<int:user_pk>/dreams/<int:dream_pk>/commentaries/create/",
         CommentaryCreateView.as_view(),
         name="commentary-create"
+    ),
+    path(
+        "users/<int:user_pk>/dreams/<int:dream_pk>/commentaries/<int:pk>/delete/",
+        CommentaryDeleteView.as_view(),
+        name="commentary-delete"
     ),
     path(
         "users/<int:user_pk>/dreams/"
