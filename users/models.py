@@ -27,3 +27,19 @@ class User(AbstractUser):
     def get_absolute_url(self) -> HttpResponse:
         return reverse("users:user-detail", kwargs={"pk": str(self.pk)})
 
+
+class Profile(models.Model):
+    bio = models.TextField(null=True, blank=True)
+    profile_picture = models.ImageField(
+        upload_to="profile_pics/",
+        null=True,
+        blank=True
+    )
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE
+    )
+
+    def __str__(self) -> str:
+        return f"{self.user.username} profile"
+
