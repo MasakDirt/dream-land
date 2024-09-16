@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+  <div class="page-header">
+    <div class="page-block">
+      <div class="row align-items-center">
+        <div class="col-md-12 text-center">
+          <div class="page-header-title">
+            <h1 class="m-b-10">You have {{ count_dreams }} dreams</h1>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+      <h2 class="text-center">Top Emotions</h2>
+
+      <div class="pedestal d-flex justify-content-center align-items-end">
+        <div class="second mx-2 text-center">
+          <i class="fas fa-fist-raised"></i>
+          <br>
+          <span
+              class="medal-text">{{ top_of_emotions.1.name }} ({{ top_of_emotions.1.count }})</span>
+          <br>2nd Place
+        </div>
+
+        <div class="first mx-2 text-center">
+          <i class="fas fa-star"></i>
+          <br>
+          <span
+              class="medal-text">{{ top_of_emotions.0.name }} ({{ top_of_emotions.0.count }})</span>
+          <br>1st Place
+        </div>
+
+        <div class="third mx-2 text-center">
+          <i class="fas fa-medal"></i>
+          <br>
+          <span
+              class="medal-text">{{ top_of_emotions.2.name }} ({{ top_of_emotions.2.count }})</span>
+          <br>3rd Place
+        </div>
+      </div>
+      <br>
+
+      <div>
+        <h5>Your most usable emotion "{{ top_of_emotions.0.name }}" in dreams
+          means:</h5>
+        <p>{{ top_of_emotions.0.description }}</p>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h5>{{ top_of_emotions|length }} most usable emotions</h5>
+        </div>
+        <div class="card-body">
+          <canvas id="line-chart-emotion"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <h2 class="text-center">Top Symbols</h2>
+
+      <div class="pedestal d-flex justify-content-center align-items-end">
+        <div class="second mx-2 text-center">
+          <i class="fas fa-fist-raised"></i>
+          <br>
+          <span
+              class="medal-text">{{ top_of_symbols.1.name }} ({{ top_of_symbols.1.count }})</span>
+          <br>2nd Place
+        </div>
+
+        <div class="first mx-2 text-center">
+          <i class="fas fa-star"></i>
+          <br>
+          <span
+              class="medal-text">{{ top_of_symbols.0.name }} ({{ top_of_symbols.0.count }})</span>
+          <br>1st Place
+        </div>
+
+        <div class="third mx-2 text-center">
+          <i class="fas fa-medal"></i>
+          <br>
+          <span
+              class="medal-text">{{ top_of_symbols.2.name }} ({{ top_of_symbols.2.count }})</span>
+          <br>3rd Place
+        </div>
+
+      </div>
+      <br>
+
+      <div>
+        <h5>Your most usable symbol "{{ top_of_symbols.0.name }}" in dreams
+          means:</h5>
+        <p>{{ top_of_symbols.0.description }}</p>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h5>{{ top_of_symbols|length }} most usable symbols</h5>
+        </div>
+        <div class="card-body">
+          <canvas id="line-chart-symbol"></canvas>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+      let ctx_emotions = document.getElementById('line-chart-emotion').getContext('2d');
+      let gradient_emotions = ctx_emotions.createLinearGradient(0, 0, 0, 400);
+      gradient_emotions.addColorStop(0, 'rgba(54, 162, 235, 0.5)');
+      gradient_emotions.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+      let lineChart_emotions = new Chart(ctx_emotions, {
+          type: "line",
+          data: {
+              labels: {{ emotion_labels|safe }},
+              datasets: [{
+                  label: "Num of Emotions",
+                  data: {{ emotion_data|safe }},
+                  backgroundColor: gradient_emotions,
+                  borderColor: 'rgba(15, 179, 194, 100)',
+                  borderWidth: 2,
+                  pointBackgroundColor: 'rgba(15, 179, 194, 100)',
+                  pointBorderColor: '#fff',
+                  pointHoverRadius: 7,
+                  pointHoverBackgroundColor: 'rgba(15, 179, 194, 100)',
+                  fill: true,
+                  tension: 0.1
+              }]
+          },
+          options: {
+              scales: {
+                  y: {
+                      beginAtZero: true,
+                      grid: {
+                          display: true,
+                          color: "rgba(200, 200, 200, 0.3)"
+                      }
+                  },
+                  x: {
+                      grid: {
+                          display: false
+                      }
+                  }
+              },
+              responsive: true,
+              plugins: {
+                  legend: {
+                      display: false
+                  },
+                  tooltip: {
+                      backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                      titleFont: {
+                          size: 16
+                      },
+                      bodyFont: {
+                          size: 14
+                      },
+                      cornerRadius: 5,
+                      caretPadding: 10
+                  }
+              }
+          }
+      });
+
+
+      let ctx_symbols = document.getElementById('line-chart-symbol').getContext('2d');
+      let gradient_symbols = ctx_symbols.createLinearGradient(0, 0, 0, 400);
+      gradient_symbols.addColorStop(0, 'rgba(54, 162, 235, 0.5)');
+      gradient_symbols.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+      let lineChart_symbols = new Chart(ctx_symbols, {
+          type: "line",
+          data: {
+              labels: {{ symbol_labels|safe }},
+              datasets: [{
+                  label: "Num of Symbols",
+                  data: {{ symbol_data|safe }},
+                  backgroundColor: gradient_emotions,
+                  borderColor: 'rgba(15, 179, 194, 100)',
+                  borderWidth: 2,
+                  pointBackgroundColor: 'rgba(15, 179, 194, 100)',
+                  pointBorderColor: '#fff',
+                  pointHoverRadius: 7,
+                  pointHoverBackgroundColor: 'rgba(15, 179, 194, 100)',
+                  fill: true,
+                  tension: 0.1
+              }]
+          },
+          options: {
+              scales: {
+                  y: {
+                      beginAtZero: true,
+                      grid: {
+                          display: true,
+                          color: "rgba(200, 200, 200, 0.3)"
+                      }
+                  },
+                  x: {
+                      grid: {
+                          display: false
+                      }
+                  }
+              },
+              responsive: true,
+              plugins: {
+                  legend: {
+                      display: false
+                  },
+                  tooltip: {
+                      backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                      titleFont: {
+                          size: 16
+                      },
+                      bodyFont: {
+                          size: 14
+                      },
+                      cornerRadius: 5,
+                      caretPadding: 10
+                  }
+              }
+          }
+      });
+  </script>
+{% endblock %}
