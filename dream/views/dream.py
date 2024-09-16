@@ -9,12 +9,20 @@ from django.db.models import (
     QuerySet
 )
 from django.http import HttpRequest, HttpResponse
+from django.urls import reverse_lazy
 from django.views.generic import (
-    ListView, DetailView
+    ListView,
+    DetailView,
+    CreateView
 )
 
-from dream.forms import DreamFilterForm, DreamSearchForm, CommentaryForm
-from dream.models import Dream
+from dream.forms import (
+    DreamFilterForm,
+    DreamSearchForm,
+    CommentaryForm,
+    DreamForm
+)
+from dream.models import Dream, Symbol, Emotion
 from dto.dto import DreamListDto
 
 
@@ -128,3 +136,25 @@ class DreamDetailView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         context["comment_form"] = CommentaryForm
         return context
+
+
+class DreamCreateView(LoginRequiredMixin, CreateView):
+    model = Dream
+    form_class = DreamForm
+
+    def get_context_data(self, **kwargs) -> dict:
+        context = super(DreamCreateView, self).get_context_data(**kwargs)
+        context["emotions"] = Emotion.objects.all()
+        context["symbols"] = Symbol.objects.all()
+
+        return context
+
+    def form_valid(self, form) -> DreamForm:
+        form.instance.user = self.request.user
+        return super().form_valid(form)
+
+    def get_success_url(self) -> HttpResponse:
+        return reverse_lazy(
+            "users:user-detail",
+            kwargs={"pk": self.request.user.pk}
+        )
