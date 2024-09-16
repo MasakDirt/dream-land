@@ -38,4 +38,15 @@ class CommentaryForm(forms.ModelForm):
 
     class Meta:
         model = Commentary
-        fields = ("content", )
+        fields = ("content",)
+
+
+class DreamForm(forms.ModelForm):
+    class Meta:
+        model = Dream
+        fields = ("title", "description", "symbols", "emotions")
+
+    def __init__(self, *args, **kwargs):
+        super(DreamForm, self).__init__(*args, **kwargs)
+        self.fields["symbols"].required = False
+        self.fields["emotions"].required = False
