@@ -43,3 +43,30 @@ class Profile(models.Model):
     def __str__(self) -> str:
         return f"{self.user.username} profile"
 
+
+class Follow(models.Model):
+    follower = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="following"
+    )
+    followed = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="followers"
+    )
+    created_time = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("follower", "followed")
+        ordering = ("-created_time",)
+
+    @staticmethod
+    def is_following(
+            follower_user: settings.AUTH_USER_MODEL,
+            followed_user: settings.AUTH_USER_MODEL
+    ) -> bool:
+        return Follow.objects.filter(
+            follower=follower_user,
+            followed=followed_user
+        ).exists()
