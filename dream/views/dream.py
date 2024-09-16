@@ -13,7 +13,8 @@ from django.urls import reverse_lazy
 from django.views.generic import (
     ListView,
     DetailView,
-    CreateView
+    CreateView,
+    UpdateView
 )
 
 from dream.forms import (
@@ -158,3 +159,36 @@ class DreamCreateView(LoginRequiredMixin, CreateView):
             "users:user-detail",
             kwargs={"pk": self.request.user.pk}
         )
+
+
+class DreamUpdateView(LoginRequiredMixin, UpdateView):
+    model = Dream
+    form_class = DreamForm
+
+    def get_context_data(self, **kwargs) -> dict:
+        context = super(DreamUpdateView, self).get_context_data(**kwargs)
+        dream = context["dream"]
+        dream.symbol_names = [
+            name[0]
+            for name in dream.symbols.values_list("name").distinct()
+        ]
+        dream.emotion_names = [
+            name[0]
+            for name in dream.emotions.values_list("name").distinct()
+        ]
+        context["emotions"] = Emotion.objects.all()
+        context["symbols"] = Symbol.objects.all()
+
+        return context
+
+    def form_valid(self, form) -> DreamForm:
+        form.instance.user = self.request.user
+        return super().form_valid(form)
+
+    def get_success_url(self) -> HttpResponse:
+        return reverse_lazy(
+            "users:user-detail",
+            kwargs={"pk": self.request.user.pk}
+        )
+
+
