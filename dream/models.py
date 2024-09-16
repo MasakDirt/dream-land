@@ -76,3 +76,105 @@ class DreamLike(models.Model):
             dream_id=dream.id
         ).exists()
 
+
+class DreamDislike(models.Model):
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="dream_dislikes"
+    )
+    dream = models.ForeignKey(
+        Dream,
+        on_delete=models.CASCADE,
+        related_name="dislikes"
+    )
+    created_time = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("owner", "dream")
+
+    @staticmethod
+    def is_user_disliked(
+            owner: settings.AUTH_USER_MODEL,
+            dream: Dream
+    ) -> bool:
+        return DreamDislike.objects.filter(
+            owner=owner,
+            dream_id=dream.id
+        ).exists()
+
+
+class Commentary(models.Model):
+    content = models.TextField()
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="commentaries"
+    )
+    dream = models.ForeignKey(
+        Dream,
+        on_delete=models.CASCADE,
+        related_name="commentaries"
+    )
+    created_time = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name_plural = "Commentaries"
+        ordering = ("-created_time",)
+
+    def __str__(self) -> str:
+        return f"'{self.owner.username}' writes [{self.content[:50]}...]"
+
+
+class CommentaryLike(models.Model):
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="commentary_likes"
+    )
+    commentary = models.ForeignKey(
+        Commentary,
+        on_delete=models.CASCADE,
+        related_name="likes"
+    )
+    created_time = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("owner", "commentary")
+
+    @staticmethod
+    def is_user_liked(
+            owner: settings.AUTH_USER_MODEL,
+            commentary: Commentary
+    ) -> bool:
+        return CommentaryLike.objects.filter(
+            owner=owner,
+            commentary=commentary
+        ).exists()
+
+
+class CommentaryDislike(models.Model):
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="commentary_dislikes"
+    )
+    commentary = models.ForeignKey(
+        Commentary,
+        on_delete=models.CASCADE,
+        related_name="dislikes"
+    )
+    created_time = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("owner", "commentary")
+
+    @staticmethod
+    def is_user_disliked(
+            owner: settings.AUTH_USER_MODEL,
+            commentary: Commentary
+    ) -> bool:
+        return CommentaryDislike.objects.filter(
+            owner=owner,
+            commentary=commentary
+        ).exists()
