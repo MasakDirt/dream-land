@@ -77,7 +77,8 @@ urlpatterns = [
         name="commentary-create"
     ),
     path(
-        "users/<int:user_pk>/dreams/<int:dream_pk>/commentaries/<int:pk>/delete/",
+        "users/<int:user_pk>/dreams/<int:dream_pk>"
+        "/commentaries/<int:pk>/delete/",
         CommentaryDeleteView.as_view(),
         name="commentary-delete"
     ),
