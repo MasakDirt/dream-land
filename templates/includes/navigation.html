@@ -1,0 +1,41 @@
+<header
+    class="navbar pcoded-header navbar-expand-lg navbar-light headerpos-fixed header-darkgreen">
+
+
+  <div class="m-header">
+    <a href="{% url 'dream:index' %}" class="b-brand">
+      <!-- ========   change your logo hear   ============ -->
+      {% load static %}
+      <img src="{% static 'images/logo.png' %}"
+           alt="" class="logo">
+    </a>
+    <a href="#" class="mob-toggler">
+      <i class="feather icon-more-vertical"></i>
+    </a>
+  </div>
+  <div class="collapse navbar-collapse">
+    <ul class="navbar-nav ms-auto">
+      <li>
+        <div class="dropdown drp-user">
+          {% if user.is_authenticated %}
+            <a href="{% url 'users:user-detail' user.id %}"
+               class="dropdown-toggle">
+          {% endif %}
+          {% if user.profile.profile_picture %}
+            <img
+                src="{{ user.profile.profile_picture.url }}"
+                class="img-radius wid-40 hei-40"
+                alt="User-Profile-Image">
+          {% else %}
+            {% load static %}
+            <img
+                src="{% static 'images/user-image.png' %}"
+                class="img-radius wid-40 hei-40"
+                alt="User-Profile-Image">
+          {% endif %}
+          </a>
+        </div>
+      </li>
+    </ul>
+  </div>
+</header>
