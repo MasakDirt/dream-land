@@ -2,10 +2,12 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Count
-from django.urls import reverse_lazy
+from django.http import HttpResponse, HttpResponseForbidden
+from django.urls import reverse_lazy, reverse
 from django.views.generic import (
     DetailView,
     CreateView,
+    DeleteView,
 )
 
 from dto.dto import DreamListDto
@@ -82,3 +84,22 @@ class UserCreateView(CreateView):
     form_class = CustomUserCreateForm
     template_name = "registration/register.html"
     success_url = reverse_lazy("login")
+
+
+class UserDeleteView(LoginRequiredMixin, DeleteView):
+    model = get_user_model()
+
+    def delete(self, request, *args, **kwargs) -> HttpResponse:
+        self.object = self.get_object()
+
+        if not self.has_permission_to_delete():
+            return HttpResponseForbidden(
+                "You do not have permission to delete this user."
+            )
+        return super().delete(request, *args, **kwargs)
+
+    def get_success_url(self) -> HttpResponse:
+        return reverse("dream:index")
+
+    def has_permission_to_delete(self) -> bool:
+        return self.request.user == self.object
