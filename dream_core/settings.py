@@ -123,3 +123,13 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # USER MODEL
 AUTH_USER_MODEL = "users.User"
+
+# MEDIA
+
+MEDIA_URL = "/media/"
+
+MEDIA_ROOT = BASE_DIR / "media"
+
+# LOGIN REDIRECT
+
+LOGIN_REDIRECT_URL = "/"
