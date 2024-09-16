@@ -237,3 +237,28 @@ class DreamAddRemoveLike(LoginRequiredMixin, View):
             "HTTP_REFERER",
             "dream:dream-list",
         ))
+
+class DreamAddRemoveDislike(LoginRequiredMixin, View):
+    def post(
+            self, request: HttpRequest,
+            user_pk: str,
+            pk: str
+    ) -> HttpResponse:
+        user = request.user
+        dream = get_object_or_404(Dream, pk=pk)
+        dream_like = DreamLike.objects.filter(owner=user, dream=dream)
+        dream_dislike = DreamDislike.objects.filter(owner=user, dream=dream)
+
+        if dream_like.exists():
+            dream_like.delete()
+
+        if dream_dislike.exists():
+            dream_dislike.delete()
+        else:
+            DreamDislike.objects.create(owner=user, dream=dream)
+
+        return redirect(self.request.META.get(
+            "HTTP_REFERER",
+            "dream:dream-list",
+        ))
+
