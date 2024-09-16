@@ -2,7 +2,11 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path
 
-from dream.views.dream import DreamListView, DreamDetailView
+from dream.views.dream import (
+    DreamListView,
+    DreamDetailView,
+    DreamCreateView
+)
 from dream.views.emotion import EmotionCreateView
 from dream.views.index import index
 from dream.views.symbol import SymbolCreateView
@@ -25,6 +29,11 @@ urlpatterns = [
         "users/<int:user_pk>/dreams/<int:pk>/",
         DreamDetailView.as_view(),
         name="dream-detail"
+    ),
+    path(
+        "users/<int:user_pk>/dreams/create/",
+        DreamCreateView.as_view(),
+        name="dream-create"
     ),
 ]
 
