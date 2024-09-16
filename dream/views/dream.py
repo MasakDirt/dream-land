@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import (
     Count,
@@ -9,7 +10,7 @@ from django.db.models import (
     QuerySet
 )
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import redirect, get_object_or_404, render
 from django.urls import reverse_lazy
 from django.views.generic import (
     ListView,
@@ -27,7 +28,7 @@ from dream.forms import (
     DreamForm
 )
 from dream.models import Dream, Symbol, Emotion, DreamLike, DreamDislike
-from dto.dto import DreamListDto
+from dto.dto import DreamListDto, EmotionDto, SymbolDto
 
 
 class DreamListView(LoginRequiredMixin, ListView):
@@ -238,6 +239,7 @@ class DreamAddRemoveLike(LoginRequiredMixin, View):
             "dream:dream-list",
         ))
 
+
 class DreamAddRemoveDislike(LoginRequiredMixin, View):
     def post(
             self, request: HttpRequest,
@@ -262,3 +264,42 @@ class DreamAddRemoveDislike(LoginRequiredMixin, View):
             "dream:dream-list",
         ))
 
+
+class DreamStatisticView(LoginRequiredMixin, View):
+    def get(self, request: HttpRequest, pk: str) -> HttpResponse:
+        user = get_user_model().objects.prefetch_related(
+            "dreams",
+            "dreams__emotions",
+            "dreams__symbols",
+        ).get(pk=pk)
+        dreams = user.dreams.all()
+
+        top_of_emotions = EmotionDto.get_from_query_set(
+            dreams.values("emotions__name", "emotions__description").annotate(
+                total_count=Count("emotions__name")
+            ).order_by("-total_count", "emotions__name")[:8]
+        )
+
+        top_of_symbols = SymbolDto.get_from_query_set(
+            dreams.values("symbols__name", "symbols__description").annotate(
+                total_count=Count("symbols__name")
+            ).order_by("-total_count", "symbols__name")[:8]
+        )
+
+        context = {
+            "current_user": user,
+            "count_dreams": user.dreams.count(),
+            "dreams": dreams,
+            "top_of_emotions": top_of_emotions,
+            "top_of_symbols": top_of_symbols,
+            "emotion_labels": [emotion.name for emotion in top_of_emotions],
+            "emotion_data": [emotion.count for emotion in top_of_emotions],
+            "symbol_labels": [symbol.name for symbol in top_of_symbols],
+            "symbol_data": [symbol.count for symbol in top_of_symbols],
+        }
+
+        return render(
+            request,
+            "dream/dream_statistic.html",
+            context=context
+        )
