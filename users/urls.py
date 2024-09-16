@@ -5,7 +5,10 @@ from users.views import (
     UserCreateView,
     UserDeleteView,
     ProfileCreateView,
-    ProfileUpdateView, FollowView, FollowedListView, FollowersListView,
+    ProfileUpdateView,
+    FollowView,
+    FollowedListView,
+    FollowersListView,
 )
 
 urlpatterns = [
@@ -24,6 +27,16 @@ urlpatterns = [
         "<int:user_pk>/profile/create/",
         ProfileCreateView.as_view(),
         name="profile-create"
+    ),
+    path(
+        "<int:pk>/followers/",
+        FollowersListView.as_view(),
+        name="user-followers"
+    ),
+    path(
+        "<int:pk>/followed/",
+        FollowedListView.as_view(),
+        name="user-followed"
     ),
     path(
         "<int:user_pk>/profile/<int:pk>/update/",
