@@ -1,0 +1,345 @@
+{% extends "base.html" %}
+{% load commentary_filters %}
+{% load follower_filter %}
+{% load dream_filters %}
+
+{% block content %}
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col-sm-3 text-center">
+              {% if current_user.profile.profile_picture %}
+                <img class="rounded-circle img-thumbnail hei-120 wid-120"
+                     src="{{ current_user.profile.profile_picture.url }}"
+                     alt="Profile Picture">
+              {% else %}
+                {% load static %}
+                <img class="rounded-circle img-thumbnail hei-120 wid-120"
+                     src="{% static '/images/user-image.png' %}"
+                     alt="Default Profile Picture">
+              {% endif %}
+            </div>
+            <div class="col-sm-5">
+              <h2 class="font-weight-bold">{{ current_user.username }}</h2>
+              <h5 class="text-muted">{{ current_user.first_name }} {{ current_user.last_name }}</h5>
+              <p class="text-muted">Bio: {{ current_user.profile.bio }}</p>
+              {% if user != current_user %}
+                <form
+                    action="{% url 'users:user-follow' followed_pk=current_user.id follower_pk=user.id %}"
+                    method="post">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-outline-primary">
+                    {% if user|is_following:current_user %}
+                      Unfollow
+                    {% else %}
+                      Follow
+                    {% endif %}
+                  </button>
+                </form>
+              {% else %}
+                <div class="row">
+                  <div class="col-sm-4">
+                    <a class="btn btn-outline-primary" href="
+                        {% if user.profile %}
+                            {% url 'users:profile-update' user_pk=user.id pk=user.profile.pk %}
+                        {% else %}
+                            {% url 'users:profile-create' user_pk=user.id %}
+                        {% endif %}">Update Profile</a>
+                  </div>
+
+                  <div class="col-sm-3">
+                    <form action="{% url 'users:user-delete' user.id %}"
+                          method="post">
+                      {% csrf_token %}
+                      <input type="submit" value="Delete me"
+                             class="btn btn-outline-danger">
+                    </form>
+                  </div>
+                </div>
+              {% endif %}
+            </div>
+            <div class="col-sm-3">
+              <h6>Most usable:</h6>
+              <p><i class="fas fa-hamsa"></i> Emotion:
+                <strong>{{ top_emotion }}</strong></p>
+              <p><i class="fas fa-biohazard"></i> Symbol:
+                <strong>{{ top_symbol }}</strong></p>
+            </div>
+          </div>
+          <div class="row text-center mt-4">
+            <div class="col-sm-3">
+              <h6>Dreams</h6>
+              <p class="font-weight-bold">{{ current_user.dreams.count }}</p>
+            </div>
+            <div class="col-sm-3">
+              <h6>Liked</h6>
+              <p class="font-weight-bold">{{ current_user.dream_likes.count }}</p>
+            </div>
+            <div class="col-sm-3">
+              <h6>Disliked</h6>
+              <p class="font-weight-bold">{{ current_user.dream_dislikes.count }}</p>
+            </div>
+            <div class="col-sm-3">
+              <h6>Commented</h6>
+              <p class="font-weight-bold">{{ current_user.commentaries.count }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-8 order-md-2">
+      <div class="tab-content" id="myTabContent">
+        <div class="tab-pane fade show active">
+          {% if current_user == user %}
+            <a class="btn btn-success" style="float: right"
+               href="{% url 'dream:dream-create' current_user.id %}"><i
+                class="fas fa-plus-square"></i></a>
+          {% endif %}
+          <h3>Dreams:</h3>
+          {% for dream in current_user.dream_dtos %}
+            <div class="card">
+              <div class="card-header">
+                <p class="mb-0 text-muted">{{ dream.date_recorded }}</p>
+                <div class="card-header-right"
+                     style="padding: 5px; font-size: 1.3rem;">
+                  {% if current_user == user %}
+                    <a href="{% url 'dream:dream-update' user_pk=user.id pk=dream.id %}"
+                       class="text-c-yellow">
+                      <i class="feather icon-edit"></i>
+                    </a>
+                    <a href="#"
+                       onclick="document.getElementById('delete-dream-form-{{ dream.id }}').submit();"
+                       class="text-danger text-h-purple">
+                      <i class="feather icon-trash-2"></i>
+                    </a>
+                    <form id="delete-dream-form-{{ dream.id }}"
+                          action="{% url 'dream:dream-delete' user.id dream.id %}"
+                          method="post" style="display: none;">
+                      {% csrf_token %}
+                    </form>
+                  {% else %}
+                    {% if dream.is_visited %}
+                      <p><i class="fas fa-eye text-c-green"></i></p>
+                    {% else %}
+                      <p><i class="fas fa-eye text-muted"></i></p>
+                    {% endif %}
+                  {% endif %}
+                </div>
+              </div>
+              <div class="card-body">
+                <a href="{% url 'dream:dream-detail' current_user.id dream.id %}"
+                   class="text-h-primary">
+                  <h4>{{ dream.title }}</h4>
+                </a>
+                <p class="text-muted mb-0">{{ dream.description }}</p>
+              </div>
+              <div class="card-body border-top border-bottom">
+                <ul class="list-inline m-0">
+                  <li class="list-inline-item">
+                    <a href="#"
+                       onclick="document.getElementById('like-form-{{ dream.id }}').submit();"
+                       class="text-danger text-h-danger">
+                      {% if dream|is_authorized_user_liked:user %}
+                        <i class="feather icon-heart-on mr-2"></i>
+                      {% else %}
+                        <i class="feather icon-heart mr-2"></i>
+                      {% endif %}
+                      {{ dream.likes.count }}
+                    </a>
+                    <form id="like-form-{{ dream.id }}"
+                          action="{% url 'dream:dream-like' current_user.id dream.id %}"
+                          method="post" style="display: none;">
+                      {% csrf_token %}
+                    </form>
+                  </li>
+                  <li class="list-inline-item">
+                    <a href="#"
+                       onclick="document.getElementById('dislike-form-{{ dream.id }}').submit();"
+                       class="text-muted text-h-primary">
+                      {% if dream|is_authorized_user_disliked:user %}
+                        <i class="fas fa-thumbs-down mr-2"></i>
+                      {% else %}
+                        <i class="feather icon-thumbs-down mr-2"></i>
+                      {% endif %}
+                      {{ dream.dislikes.count }}
+                    </a>
+                    <form id="dislike-form-{{ dream.id }}"
+                          action="{% url 'dream:dream-dislike' current_user.id dream.id %}"
+                          method="post" style="display: none;">
+                      {% csrf_token %}
+                    </form>
+                  </li>
+                </ul>
+              </div>
+              <div class="card-body">
+                <div class="row justify-content-between mb-4">
+                  <div class="col-auto">
+                    <a href="{% url 'dream:dream-detail' current_user.id dream.pk %}"
+                       class="text-muted text-h-primary">Comment
+                      ({{ dream.commentaries.count }})</a></div>
+                </div>
+                {% for comment in dream.commentaries.all|slice:2 %}
+                  <div class="media mb-0">
+                    <img
+                        src="
+                        {% if comment.owner.profile.profile_picture %}
+                          {{ comment.owner.profile.profile_picture.url }}
+                        {% else %}
+                          {% static '/images/user-image.png' %}
+                        {% endif %}"
+                        alt="user image"
+                        class="img-radius wid-30 hei-30 align-top m-r-15">
+                    <div class="media-body">
+                      <a href="{% url 'users:user-detail' comment.owner.id %}">
+                        <h6 class="mb-0 text-h-primary">{{ comment.owner.username }}</h6>
+                      </a>
+                      <p class="m-b-0">{{ comment.content }}
+                        <a href="#"
+                           onclick="document.getElementById('comment-like-form-{{ comment.id }}').submit();"
+                           class="text-muted text-h-danger ml-1">
+                          {% if comment|is_user_liked:user %}
+                            <small><i
+                                class="feather icon-heart-on mr-2"></i></small>
+                          {% else %}
+                            <small><i
+                                class="feather icon-heart mr-2"></i></small>
+                          {% endif %}
+                        </a>
+
+                        <small>{{ comment.likes.count }}</small>
+                      <form id="comment-like-form-{{ comment.id }}"
+                            action="{% url 'dream:comment-like' current_user.id dream.id comment.id %}"
+                            method="post" style="display: none;">
+                        {% csrf_token %}
+                      </form>
+                      </p>
+                    </div>
+                  </div>
+                  <hr>
+                {% endfor %}
+                <div class="media mb-0">
+                  <img
+                      src="
+                      {% if user.profile.profile_picture %}
+                        {{ user.profile.profile_picture.url }}
+                      {% else %}
+                        {% static '/images/user-image.png' %}
+                      {% endif %}
+"
+                      alt="user image"
+                      class="img-radius wid-40 hei-40 align-top m-r-15">
+                  <div class="media-body">
+                    <div class="input-group mb-3">
+                      <input type="text" id="comment-input-{{ dream.id }}"
+                             name="content"
+                             class="form-control form-control border-0 shadow-none px-0"
+                             placeholder="Write comment here! . . .">
+                      <div class="input-group-append">
+                        <button class="btn btn-primary"
+                                onclick="submitCommentForm('{{ dream.id }}');"
+                                type="button">
+                          <i class="feather icon-message-circle"></i>
+                        </button>
+                      </div>
+                      <form id="comment-create-{{ dream.id }}"
+                            action="{% url 'dream:commentary-create' current_user.id dream.id %}"
+                            method="post" style="display: none;" novalidate>
+                        {% csrf_token %}
+                        <input type="hidden" name="content"
+                               id="hidden-comment-{{ dream.id }}">
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% empty %}
+            <p class="text-danger">"{{ current_user.username }}" have no
+              dreams, yet!</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 order-md-1">
+      <div class="card clickable-card"
+           data-url="{% url 'users:user-followers' current_user.id %}">
+        <div
+            class="card-header d-flex align-items-center justify-content-between">
+          <h5 class="mb-0">Followers</h5>
+          <span
+              class="badge badge-light-primary float-right"> {{ current_user.followers.count }}</span>
+        </div>
+        <div class="card-body">
+          <ul class="list-inline">
+            {% for follow in current_user.followers.all|slice:10 %}
+              <li class="list-inline-item"><a
+                  href="{% url 'users:user-detail' follow.follower.id %}"><img
+                  src="
+                  {% if follow.follower.profile.profile_picture %}
+                    {{ follow.follower.profile.profile_picture.url }}
+                  {% else %}
+                    {% static '/images/user-image.png' %}
+                  {% endif %}"
+                  alt="user image" class="img-radius mb-2 wid-60 hei-60"
+                  data-toggle="tooltip" title="{{ follow.follower.username }}"></a>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+      <div class="card clickable-card"
+           data-url="{% url 'users:user-followed' current_user.id %}">
+        <div
+            class="card-header d-flex align-items-center justify-content-between">
+          <h5 class="mb-0">Following</h5>
+          <span
+              class="badge badge-light-primary float-right"> {{ current_user.following.count }}</span>
+        </div>
+        <div class="card-body">
+          <ul class="list-inline">
+            {% for follow in current_user.following.all|slice:10 %}
+              <li class="list-inline-item"><a
+                  href="{% url 'users:user-detail' follow.followed.id %}"><img
+                  src="
+                  {% if follow.followed.profile.profile_picture %}
+                    {{ follow.followed.profile.profile_picture.url }}
+                  {% else %}
+                    {% static '/images/user-image.png' %}
+                  {% endif %}"
+                  alt="user image" class="img-radius mb-2 wid-60 hei-60"
+                  data-toggle="tooltip" title="{{ follow.followed.username }}"></a>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+      document.addEventListener("DOMContentLoaded", function () {
+          const cards = document.querySelectorAll('.clickable-card');
+          cards.forEach(card => {
+              card.addEventListener('click', function () {
+                  window.location.href = card.getAttribute('data-url');
+              });
+          });
+      });
+
+      function submitCommentForm(dreamId) {
+          document.getElementById('hidden-comment-' + dreamId).value = document.getElementById('comment-input-' + dreamId).value;
+          document.getElementById('comment-create-' + dreamId).submit();
+      }
+
+      $(document).ready(function () {
+          $('[title]').tooltip();
+      });
+  </script>
+{% endblock %}
