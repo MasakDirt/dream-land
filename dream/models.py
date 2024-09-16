@@ -51,3 +51,28 @@ class Dream(models.Model):
             "user_pk": str(self.user.id),
             "pk": str(self.pk),
         })
+
+
+class DreamLike(models.Model):
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="dream_likes"
+    )
+    dream = models.ForeignKey(
+        Dream,
+        on_delete=models.CASCADE,
+        related_name="likes"
+    )
+    created_time = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("owner", "dream")
+
+    @staticmethod
+    def is_user_liked(owner: settings.AUTH_USER_MODEL, dream: Dream) -> bool:
+        return DreamLike.objects.filter(
+            owner=owner,
+            dream_id=dream.id
+        ).exists()
+
