@@ -8,7 +8,8 @@ from dream.views.dream import (
     DreamCreateView,
     DreamUpdateView,
     DreamDeleteView,
-    DreamAddRemoveLike
+    DreamAddRemoveLike,
+    DreamAddRemoveDislike
 )
 from dream.views.emotion import EmotionCreateView
 from dream.views.index import index
@@ -52,6 +53,11 @@ urlpatterns = [
         "users/<int:user_pk>/dreams/<int:pk>/like/",
         DreamAddRemoveLike.as_view(),
         name="dream-like"
+    ),
+    path(
+        "users/<int:user_pk>/dreams/<int:pk>/dislike/",
+        DreamAddRemoveDislike.as_view(),
+        name="dream-dislike"
     ),
 ]
 
