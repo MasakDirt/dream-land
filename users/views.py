@@ -5,18 +5,20 @@ from django.db.models import Count
 from django.http import (
     HttpResponse,
     HttpResponseForbidden,
-    HttpResponseRedirect
+    HttpResponseRedirect,
+    HttpRequest
 )
+from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse_lazy, reverse
 from django.views.generic import (
     DetailView,
     CreateView,
-    DeleteView, UpdateView,
+    DeleteView, UpdateView, View,
 )
 
 from dto.dto import DreamListDto
 from users.forms import CustomUserCreateForm
-from users.models import Profile
+from users.models import Profile, Follow
 
 
 class UserDetailView(LoginRequiredMixin, DetailView):
@@ -140,3 +142,26 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
             "users:user-detail",
             kwargs={"pk": self.request.user.pk}
         )
+
+
+class FollowView(LoginRequiredMixin, View):
+    def post(
+            self, request: HttpRequest,
+            followed_pk: str,
+            follower_pk: str
+    ) -> HttpResponse:
+        user_followed = get_object_or_404(get_user_model(), pk=followed_pk)
+        user_follower = get_object_or_404(get_user_model(), pk=follower_pk)
+
+        if Follow.is_following(user_follower, user_followed):
+            Follow.objects.filter(
+                follower=user_follower,
+                followed=user_followed
+            ).delete()
+        else:
+            Follow.objects.create(
+                follower=user_follower,
+                followed=user_followed
+            )
+
+        return redirect("users:user-detail", pk=followed_pk)
