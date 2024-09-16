@@ -8,11 +8,12 @@ from django.db.models import (
     IntegerField,
     QuerySet
 )
+from django.http import HttpRequest, HttpResponse
 from django.views.generic import (
-    ListView
+    ListView, DetailView
 )
 
-from dream.forms import DreamFilterForm, DreamSearchForm
+from dream.forms import DreamFilterForm, DreamSearchForm, CommentaryForm
 from dream.models import Dream
 from dto.dto import DreamListDto
 
@@ -92,3 +93,38 @@ class DreamListView(LoginRequiredMixin, ListView):
                 )
 
         return self.queryset
+
+
+class DreamDetailView(LoginRequiredMixin, DetailView):
+    model = Dream
+
+    def get_object(self, queryset: QuerySet = None) -> Dream:
+        dream_pk = self.kwargs["pk"]
+        dream = Dream.objects.select_related("user").prefetch_related(
+            "user__profile",
+            "likes",
+            "dislikes",
+            "emotions",
+            "symbols",
+            "commentaries",
+            "commentaries__owner",
+            "commentaries__owner__profile",
+            "commentaries__likes",
+            "commentaries__dislikes",
+        ).get(pk=dream_pk)
+
+        return dream
+
+    def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        response = super().get(self, request, *args, **kwargs)
+        pk = str(kwargs["pk"])
+        is_visited = request.COOKIES.get(pk, False)
+        if not is_visited:
+            response.set_cookie(pk, True)
+
+        return response
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["comment_form"] = CommentaryForm
+        return context
