@@ -3,10 +3,15 @@ from django.conf.urls.static import static
 from django.urls import path
 
 from dream.views.index import index
+from dream.views.symbol import SymbolCreateView
 
 urlpatterns = [
     path("", index, name="index"),
-
+    path(
+        "symbols/create/",
+        SymbolCreateView.as_view(),
+        name="symbol-create"
+    )
 ]
 
 if settings.DEBUG:
