@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <title>Dream Land</title>
+
+  <meta charset="utf-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="description" content=""/>
+  <meta name="keywords" content="">
+
+  {% load static %}
+  <link rel="stylesheet"
+        href="{% static 'assets/css/style.css' %}">
+  <link rel="icon" href="{% static 'images/favicon.png' %}"
+        type="image/icon type">
+</head>
+
+<body>
+
+{% include 'includes/sidebar.html' %}
+{% include 'includes/navigation.html' %}
+<div class="pcoded-main-container">
+  <div class="auth-wrapper">
+    <div class="auth-content">
+      <div class="card">
+        <div class="row align-items-center text-center">
+          <div class="col-md-12">
+            <div class="card-body">
+              {% load static %}
+              <img src="{% static 'images/logo-blue.png' %}" alt=""
+                   class="img-fluid mb-4">
+              <h4 class="mb-3 f-w-400">Signin</h4>
+
+              <form method="post" action="" novalidate>
+                {% csrf_token %}
+
+                <!-- Виведення загальних помилок форми -->
+                {% if form.non_field_errors %}
+                  <div class="alert alert-danger">
+                    <ul>
+                      {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                {% endif %}
+
+                <div class="input-group mb-3">
+                  <span class="input-group-text">
+                    <i class="feather icon-user"></i>
+                  </span>
+                  <input type="text" name="username" autofocus=""
+                         autocapitalize="none" autocomplete="username"
+                         maxlength="150" required=""
+                         class="form-control" placeholder="Username">
+                </div>
+
+                <!-- Виведення помилок для поля username -->
+                {% if form.username.errors %}
+                  <div class="alert alert-danger">
+                    <ul>
+                      {% for error in form.username.errors %}
+                        <li>{{ error }}</li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                {% endif %}
+
+                <div class="input-group mb-4">
+                  <span class="input-group-text">
+                    <i class="feather icon-lock"></i>
+                  </span>
+                  <input type="password" name="password"
+                         autocomplete="current-password"
+                         required="" class="form-control"
+                         placeholder="Password">
+                </div>
+
+                <!-- Виведення помилок для поля password -->
+                {% if form.password.errors %}
+                  <div class="alert alert-danger">
+                    <ul>
+                      {% for error in form.password.errors %}
+                        <li>{{ error }}</li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                {% endif %}
+
+                <button type="submit"
+                        class="btn btn-block btn-primary mt-2 mb-4">
+                  Signin
+                </button>
+
+                <p class="mb-0 text-muted">Don’t have an account?
+                  <a href="{% url 'users:user-create' %}" class="f-w-400">Signup</a>
+                </p>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
