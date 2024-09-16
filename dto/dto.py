@@ -57,3 +57,39 @@ class GraphicDto:
             get_labels_func(query_set),
             cls._get_count(query_set)
         )
+
+
+@dataclass
+class SymbolDto:
+    name: str
+    count: int
+    description: str
+
+    @classmethod
+    def get_from_query_set(cls, data: QuerySet[dict]) -> list[SymbolDto]:
+        return [
+            cls(
+                symbol["symbols__name"],
+                symbol["total_count"],
+                symbol["symbols__description"]
+            )
+            for symbol in data
+        ]
+
+
+@dataclass
+class EmotionDto:
+    name: str
+    count: int
+    description: str
+
+    @classmethod
+    def get_from_query_set(cls, data: QuerySet[dict]) -> list[EmotionDto]:
+        return [
+            cls(
+                emotion["emotions__name"],
+                emotion["total_count"],
+                emotion["emotions__description"]
+            )
+            for emotion in data
+        ]
