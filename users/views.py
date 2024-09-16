@@ -2,16 +2,21 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Count
-from django.http import HttpResponse, HttpResponseForbidden
+from django.http import (
+    HttpResponse,
+    HttpResponseForbidden,
+    HttpResponseRedirect
+)
 from django.urls import reverse_lazy, reverse
 from django.views.generic import (
     DetailView,
     CreateView,
-    DeleteView,
+    DeleteView, UpdateView,
 )
 
 from dto.dto import DreamListDto
 from users.forms import CustomUserCreateForm
+from users.models import Profile
 
 
 class UserDetailView(LoginRequiredMixin, DetailView):
@@ -103,3 +108,35 @@ class UserDeleteView(LoginRequiredMixin, DeleteView):
 
     def has_permission_to_delete(self) -> bool:
         return self.request.user == self.object
+
+
+class ProfileCreateView(LoginRequiredMixin, CreateView):
+    model = Profile
+    fields = ("bio", "profile_picture")
+    template_name = "users/profile_form.html"
+
+    def form_valid(self, form) -> HttpResponseRedirect:
+        form.instance.user = self.request.user
+        return super().form_valid(form)
+
+    def get_success_url(self) -> HttpResponse:
+        return reverse_lazy(
+            "users:user-detail",
+            kwargs={"pk": self.request.user.pk}
+        )
+
+
+class ProfileUpdateView(LoginRequiredMixin, UpdateView):
+    model = Profile
+    fields = ("bio", "profile_picture")
+    template_name = "users/profile_form.html"
+
+    def form_valid(self, form) -> HttpResponseRedirect:
+        form.instance.user = self.request.user
+        return super().form_valid(form)
+
+    def get_success_url(self) -> HttpResponse:
+        return reverse_lazy(
+            "users:user-detail",
+            kwargs={"pk": self.request.user.pk}
+        )
