@@ -5,7 +5,8 @@ from django.urls import path
 from dream.views.dream import (
     DreamListView,
     DreamDetailView,
-    DreamCreateView
+    DreamCreateView,
+    DreamUpdateView
 )
 from dream.views.emotion import EmotionCreateView
 from dream.views.index import index
@@ -34,6 +35,11 @@ urlpatterns = [
         "users/<int:user_pk>/dreams/create/",
         DreamCreateView.as_view(),
         name="dream-create"
+    ),
+    path(
+        "users/<int:user_pk>/dreams/<int:pk>/update/",
+        DreamUpdateView.as_view(),
+        name="dream-update"
     ),
 ]
 
