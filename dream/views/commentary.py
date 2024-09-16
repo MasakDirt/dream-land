@@ -1,8 +1,8 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
 from django.views import View
-from django.views.generic import CreateView
+from django.views.generic import CreateView, DeleteView
 
 from dream.forms import CommentaryForm
 from dream.models import Commentary, CommentaryLike, CommentaryDislike, Dream
@@ -41,6 +41,7 @@ class CommentAddRemoveLike(LoginRequiredMixin, View):
             )
         )
 
+
 class CommentAddRemoveDislike(LoginRequiredMixin, View):
     def post(
             self, request: HttpRequest,
@@ -70,7 +71,6 @@ class CommentAddRemoveDislike(LoginRequiredMixin, View):
         return redirect("dream:dream-detail", user_pk=user_pk, pk=dream_pk)
 
 
-
 class CommentaryCreateView(LoginRequiredMixin, CreateView):
     model = Commentary
     form_class = CommentaryForm
@@ -87,3 +87,20 @@ class CommentaryCreateView(LoginRequiredMixin, CreateView):
         return self.request.META.get("HTTP_REFERER")
 
 
+class CommentaryDeleteView(LoginRequiredMixin, DeleteView):
+    model = Commentary
+
+    def delete(self, request, *args, **kwargs) -> HttpResponse:
+        self.object = self.get_object()
+
+        if not self.has_permission_to_delete():
+            return HttpResponseForbidden(
+                "You do not have permission to delete this commentary."
+            )
+        return super().delete(request, *args, **kwargs)
+
+    def get_success_url(self) -> HttpResponse:
+        return self.object.dream.get_absolute_url()
+
+    def has_permission_to_delete(self) -> bool:
+        return self.request.user == self.object.owner
