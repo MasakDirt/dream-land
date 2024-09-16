@@ -8,13 +8,14 @@ from django.db.models import (
     IntegerField,
     QuerySet
 )
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.urls import reverse_lazy
 from django.views.generic import (
     ListView,
     DetailView,
     CreateView,
-    UpdateView
+    UpdateView,
+    DeleteView
 )
 
 from dream.forms import (
@@ -192,3 +193,20 @@ class DreamUpdateView(LoginRequiredMixin, UpdateView):
         )
 
 
+class DreamDeleteView(LoginRequiredMixin, DeleteView):
+    model = Dream
+
+    def delete(self, request, *args, **kwargs) -> HttpResponse:
+        self.object = self.get_object()
+
+        if not self.has_permission_to_delete():
+            return HttpResponseForbidden(
+                "You do not have permission to delete this dream."
+            )
+        return super().delete(request, *args, **kwargs)
+
+    def get_success_url(self) -> HttpResponse:
+        return self.object.user.get_absolute_url()
+
+    def has_permission_to_delete(self) -> bool:
+        return self.request.user == self.object.user

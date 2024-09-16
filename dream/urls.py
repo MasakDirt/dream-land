@@ -6,7 +6,7 @@ from dream.views.dream import (
     DreamListView,
     DreamDetailView,
     DreamCreateView,
-    DreamUpdateView
+    DreamUpdateView, DreamDeleteView
 )
 from dream.views.emotion import EmotionCreateView
 from dream.views.index import index
@@ -40,6 +40,11 @@ urlpatterns = [
         "users/<int:user_pk>/dreams/<int:pk>/update/",
         DreamUpdateView.as_view(),
         name="dream-update"
+    ),
+    path(
+        "users/<int:user_pk>/dreams/<int:pk>/delete/",
+        DreamDeleteView.as_view(),
+        name="dream-delete"
     ),
 ]
 
