@@ -2,11 +2,14 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Count
+from django.urls import reverse_lazy
 from django.views.generic import (
     DetailView,
+    CreateView,
 )
 
 from dto.dto import DreamListDto
+from users.forms import CustomUserCreateForm
 
 
 class UserDetailView(LoginRequiredMixin, DetailView):
@@ -72,3 +75,10 @@ class UserDetailView(LoginRequiredMixin, DetailView):
         context["top_symbol"] = top_symbol[0] if top_symbol else ""
 
         return context
+
+
+class UserCreateView(CreateView):
+    model = get_user_model()
+    form_class = CustomUserCreateForm
+    template_name = "registration/register.html"
+    success_url = reverse_lazy("login")
