@@ -3,6 +3,7 @@ from django.urls import path
 from users.views import (
     UserDetailView,
     UserCreateView,
+    UserDeleteView,
 )
 
 urlpatterns = [
@@ -11,6 +12,11 @@ urlpatterns = [
         "create/",
         UserCreateView.as_view(),
         name="user-create"
+    ),
+    path(
+        "<int:pk>/delete/",
+        UserDeleteView.as_view(),
+        name="user-delete"
     ),
 ]
 
