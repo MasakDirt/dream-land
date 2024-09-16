@@ -2,8 +2,10 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.views import View
+from django.views.generic import CreateView
 
-from dream.models import Commentary, CommentaryLike, CommentaryDislike
+from dream.forms import CommentaryForm
+from dream.models import Commentary, CommentaryLike, CommentaryDislike, Dream
 
 
 class CommentAddRemoveLike(LoginRequiredMixin, View):
@@ -66,3 +68,22 @@ class CommentAddRemoveDislike(LoginRequiredMixin, View):
             CommentaryDislike.objects.create(owner=user, commentary=commentary)
 
         return redirect("dream:dream-detail", user_pk=user_pk, pk=dream_pk)
+
+
+
+class CommentaryCreateView(LoginRequiredMixin, CreateView):
+    model = Commentary
+    form_class = CommentaryForm
+
+    def form_valid(self, form):
+        comment = form.save(commit=False)
+        comment.owner = self.request.user
+        dream = get_object_or_404(Dream, pk=self.kwargs.get("dream_pk"))
+        comment.dream = dream
+        comment.save()
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return self.request.META.get("HTTP_REFERER")
+
+
