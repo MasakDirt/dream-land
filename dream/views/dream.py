@@ -9,13 +9,15 @@ from django.db.models import (
     QuerySet
 )
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
+from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic import (
     ListView,
     DetailView,
     CreateView,
     UpdateView,
-    DeleteView
+    DeleteView,
+    View
 )
 
 from dream.forms import (
@@ -24,7 +26,7 @@ from dream.forms import (
     CommentaryForm,
     DreamForm
 )
-from dream.models import Dream, Symbol, Emotion
+from dream.models import Dream, Symbol, Emotion, DreamLike, DreamDislike
 from dto.dto import DreamListDto
 
 
@@ -210,3 +212,28 @@ class DreamDeleteView(LoginRequiredMixin, DeleteView):
 
     def has_permission_to_delete(self) -> bool:
         return self.request.user == self.object.user
+
+
+class DreamAddRemoveLike(LoginRequiredMixin, View):
+    def post(
+            self, request: HttpRequest,
+            user_pk: str,
+            pk: str
+    ) -> HttpResponse:
+        user = request.user
+        dream = get_object_or_404(Dream, pk=pk)
+        dream_like = DreamLike.objects.filter(owner=user, dream=dream)
+        dream_dislike = DreamDislike.objects.filter(owner=user, dream=dream)
+
+        if dream_dislike.exists():
+            dream_dislike.delete()
+
+        if dream_like.exists():
+            dream_like.delete()
+        else:
+            DreamLike.objects.create(owner=user, dream=dream)
+
+        return redirect(self.request.META.get(
+            "HTTP_REFERER",
+            "dream:dream-list",
+        ))
