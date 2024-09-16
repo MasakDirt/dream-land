@@ -2,6 +2,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path
 
+from dream.views.commentary import CommentAddRemoveLike
 from dream.views.dream import (
     DreamListView,
     DreamDetailView,
@@ -63,6 +64,12 @@ urlpatterns = [
         "users/<int:user_pk>/dreams/<int:pk>/dislike/",
         DreamAddRemoveDislike.as_view(),
         name="dream-dislike"
+    ),
+    path(
+        "users/<int:user_pk>/dreams/"
+        "<int:dream_pk>/commentaries/<int:pk>/like/",
+        CommentAddRemoveLike.as_view(),
+        name="comment-like"
     ),
 ]
 
