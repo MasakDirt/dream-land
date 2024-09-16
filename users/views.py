@@ -165,3 +165,49 @@ class FollowView(LoginRequiredMixin, View):
             )
 
         return redirect("users:user-detail", pk=followed_pk)
+
+
+class FollowersListView(LoginRequiredMixin, View):
+    def get(self, request: HttpRequest, pk: str) -> HttpResponse:
+        user = get_object_or_404(get_user_model(), pk=pk)
+        queryset = user.followers.select_related(
+            "follower"
+        ).prefetch_related(
+            "follower__dreams",
+            "follower__followers",
+            "follower__following"
+        )
+
+        context = {
+            "followers": queryset,
+            "current_user": user,
+        }
+
+        return render(
+            request,
+            "users/followers_list.html",
+            context=context
+        )
+
+
+class FollowedListView(LoginRequiredMixin, View):
+    def get(self, request: HttpRequest, pk: str) -> HttpResponse:
+        user = get_object_or_404(get_user_model(), pk=pk)
+        queryset = user.following.select_related(
+            "followed"
+        ).prefetch_related(
+            "followed__dreams",
+            "followed__followers",
+            "followed__following"
+        )
+
+        context = {
+            "following": queryset,
+            "current_user": user,
+        }
+
+        return render(
+            request,
+            "users/following_list.html",
+            context=context
+        )
