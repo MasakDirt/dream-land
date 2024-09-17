@@ -32,7 +32,10 @@ def get_graphics() -> dict:
         Dream.objects.values(
             "date_recorded__month",
             "date_recorded__year"
-        ).annotate(count=Count("title")).order_by(),
+        ).annotate(count=Count("title")).order_by(
+            "date_recorded__year",
+            "date_recorded__month"
+        ),
         get_dream_labels
     )
     top_emotions_graphic = GraphicDto.get_from_query_set(
