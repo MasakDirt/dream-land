@@ -25,7 +25,7 @@ SECRET_KEY = os.environ["DJANGO_SECRET_KET"]
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = "RENDER" not in os.environ
 
-ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
+ALLOWED_HOSTS = ["127.0.0.1", "dream-land-4k1a.onrender.com"]
 
 # Application definition
 
