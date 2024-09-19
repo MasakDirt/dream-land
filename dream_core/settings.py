@@ -136,14 +136,18 @@ ASSETS_ROOT = "static/assets/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# MinIO credentials and settings
+
+AWS_ACCESS_KEY_ID = os.environ["ACCESS_KEY"]
+AWS_SECRET_ACCESS_KEY = os.environ["SECRET_KEY"]
+AWS_STORAGE_BUCKET_NAME = os.environ["BUCKET_NAME"]
+
 # USER MODEL
 AUTH_USER_MODEL = "users.User"
 
 # MEDIA
 
-MEDIA_URL = "/media/"
-
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_URL = f"https://play.min.io:9443/{AWS_STORAGE_BUCKET_NAME}/"
 
 # LOGIN REDIRECT
 
