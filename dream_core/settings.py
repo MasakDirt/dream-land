@@ -39,6 +39,7 @@ INSTALLED_APPS = [
 
     # 3rd apps
     "debug_toolbar",
+    "storages",
 
     # custom apps
     "users",
@@ -136,18 +137,26 @@ ASSETS_ROOT = "static/assets/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# MinIO credentials and settings
+# AWS credentials and settings
 
 AWS_ACCESS_KEY_ID = os.environ["ACCESS_KEY"]
 AWS_SECRET_ACCESS_KEY = os.environ["SECRET_KEY"]
 AWS_STORAGE_BUCKET_NAME = os.environ["BUCKET_NAME"]
+AWS_S3_REGION_NAME = "eu-north-1"
+
+AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
+AWS_S3_OBJECT_PARAMETERS = {
+    'CacheControl': 'max-age=86400',
+}
+
+DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 
 # USER MODEL
 AUTH_USER_MODEL = "users.User"
 
 # MEDIA
 
-MEDIA_URL = f"https://play.min.io:9443/{AWS_STORAGE_BUCKET_NAME}/"
+MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
 
 # LOGIN REDIRECT
 

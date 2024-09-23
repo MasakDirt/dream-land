@@ -7,8 +7,6 @@ from django.db import models
 from django.http import HttpResponse
 from django.urls import reverse
 
-from storage.minio import MinioStorage
-
 
 SIXTEEN_YEARS_IN_DAYS = 5844
 
@@ -34,7 +32,6 @@ class Profile(models.Model):
     bio = models.TextField(null=True, blank=True)
     profile_picture = models.ImageField(
         upload_to="profile_pics/",
-        storage=MinioStorage(),
         null=True,
         blank=True
     )
