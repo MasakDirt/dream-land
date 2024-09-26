@@ -156,6 +156,8 @@
                           action="{% url 'dream:dream-like' current_user.id dream.id %}"
                           method="post" style="display: none;">
                       {% csrf_token %}
+                      <input type="hidden" name="next"
+                             value="{{ request.path }}">
                     </form>
                   </li>
                   <li class="list-inline-item">
@@ -173,6 +175,8 @@
                           action="{% url 'dream:dream-dislike' current_user.id dream.id %}"
                           method="post" style="display: none;">
                       {% csrf_token %}
+                      <input type="hidden" name="next"
+                             value="{{ request.path }}">
                     </form>
                   </li>
                 </ul>
@@ -217,6 +221,9 @@
                             action="{% url 'dream:comment-like' current_user.id dream.id comment.id %}"
                             method="post" style="display: none;">
                         {% csrf_token %}
+
+                        <input type="hidden" name="next"
+                               value="{{ request.path }}">
                       </form>
                       </p>
                     </div>
