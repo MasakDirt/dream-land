@@ -8,7 +8,7 @@ from django.http import HttpResponse
 from django.urls import reverse
 
 
-SIXTEEN_YEARS_IN_DAYS = 5844
+SIXTEEN_YEARS_IN_DAYS = 12 * 365 + 4 * 366
 
 
 def validate_birth_date(birth_date):
