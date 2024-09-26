@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="page-header">
+    <div class="page-block">
+      <div class="row align-items-center">
+        <div class="col-md-12">
+          <div class="page-header-title">
+            <h2 class="m-b-10">Hello in Dream Land!</h2>
+          </div>
+          <ul class="breadcrumb">
+            <li class="breadcrumb-item">It`s a fascinating place where you
+              can dip in people dreams😍😲
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6 col-xl-3">
+      <div class="card bg-c-purple order-card">
+        <div class="card-body">
+          <h6 class="text-white">Registered profiles</h6>
+          <h2 class="text-end text-white"><i
+              class="fas fa-user-alt float-start"></i><span>{{ profiles_count }}</span>
+          </h2>
+          <p class="m-b-0">This Month<span
+              class="float-end">{{ profiles_month_count }}</span></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+      <div class="card bg-c-green order-card">
+        <div class="card-body">
+          <h6 class="text-white">Description of dreams</h6>
+          <h2 class="text-end text-white"><i
+              class="fa fa-book-open float-start"></i><span>{{ dreams_count }}</span>
+          </h2>
+          <p class="m-b-0">This Month<span
+              class="float-end">{{ dreams_month_count }}</span></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+      <div class="card bg-c-red order-card">
+        <div class="card-body">
+          <h6 class="text-white">Commentaries</h6>
+          <h2 class="text-end text-white"><i
+              class="fas fa-comment-dots float-start"></i><span>{{ commentary_count }}</span>
+          </h2>
+          <p class="m-b-0">This Month<span
+              class="float-end">{{ commentary_month_count }}</span></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+      {% if visit_count > 15 %}
+        <div class="card bg-c-yellow order-card">
+          <div class="card-body">
+            <h6 class="text-white">You visit this page</h6>
+            <h2 class="text-end text-white"><i
+                class="fas fa-burn float-start"></i><span>{{ visit_count }}
+      time{{ visit_count|pluralize }}</span>
+            </h2>
+            <p class="m-b-0">Record<span
+                class="float-end">{{ visit_record }}</span></p>
+          </div>
+        </div>
+      {% else %}
+        <div class="card bg-c-blue order-card">
+          <div class="card-body">
+            <h6 class="text-white">You visit this page</h6>
+            <h2 class="text-end text-white"><i
+                class="fas fa-feather-alt float-start"></i>
+              <span>{{ visit_count }}
+      time{{ visit_count|pluralize }}</span>
+            </h2>
+            <p class="m-b-0">Record<span
+                class="float-end">{{ visit_record }}</span></p>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h5>Count of dreams per month</h5>
+        </div>
+        <div class="card-body">
+          <canvas id="line-chart-1"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h5>10 most usable emotions</h5>
+        </div>
+        <div class="card-body">
+          <canvas id="line-chart-2"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+      let ctx_dreams_per_month = document.getElementById('line-chart-1').getContext('2d');
+      let gradient_dreams_per_month = ctx_dreams_per_month.createLinearGradient(0, 0, 0, 400);
+      gradient_dreams_per_month.addColorStop(0, 'rgba(54, 162, 235, 0.5)');
+      gradient_dreams_per_month.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+      let lineChart_per_month = new Chart(ctx_dreams_per_month, {
+          type: 'line',
+          data: {
+              labels: {{ dream_graphic.labels|safe }},
+              datasets: [{
+                  label: 'Num of Dreams',
+                  data: {{ dream_graphic.data|safe }},
+                  backgroundColor: gradient_dreams_per_month,
+                  borderColor: 'rgba(15, 179, 194, 100)',
+                  borderWidth: 2,
+                  pointBackgroundColor: 'rgba(15, 179, 194, 100)',
+                  pointBorderColor: '#fff',
+                  pointHoverRadius: 7,
+                  pointHoverBackgroundColor: 'rgba(15, 179, 194, 100)',
+                  fill: true,
+                  tension: 0.4,
+                  borderDash: [10, 10] // Пунктирний стиль
+              }]
+          },
+          options: {
+              scales: {
+                  y: {
+                      beginAtZero: true,
+                      grid: {
+                          display: true,
+                          color: "rgba(200, 200, 200, 0.3)"
+                      }
+                  },
+                  x: {
+                      grid: {
+                          display: false
+                      }
+                  }
+              },
+              responsive: true,
+              plugins: {
+                  legend: {
+                      display: false
+                  },
+                  tooltip: {
+                      backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                      titleFont: {
+                          size: 16
+                      },
+                      bodyFont: {
+                          size: 14
+                      },
+                      cornerRadius: 5,
+                      caretPadding: 10
+                  }
+              }
+          }
+      });
+
+      let ctx_dreams_emotions = document.getElementById('line-chart-2').getContext('2d');
+      let gradient_dreams_emotions = ctx_dreams_emotions.createLinearGradient(0, 0, 0, 400);
+      gradient_dreams_emotions.addColorStop(0, 'rgba(54, 162, 235, 0.5)');
+      gradient_dreams_emotions.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+      let lineChart_emotions = new Chart(ctx_dreams_emotions, {
+          type: 'line',
+          data: {
+              labels: {{ emotions_graphic.labels|safe }},
+              datasets: [{
+                  label: 'Num of usage',
+                  data: {{ emotions_graphic.data|safe }},
+                  backgroundColor: gradient_dreams_emotions,
+                  borderColor: 'rgba(15, 179, 194, 100)',
+                  borderWidth: 2,
+                  pointBackgroundColor: 'rgba(15, 179, 194, 100)',
+                  pointBorderColor: '#fff',
+                  pointHoverRadius: 7,
+                  pointHoverBackgroundColor: 'rgba(15, 179, 194, 100)',
+                  fill: true,
+                  tension: 0.4,
+                  borderDash: [10, 10]
+              }]
+          },
+          options: {
+              scales: {
+                  y: {
+                      beginAtZero: true,
+                      grid: {
+                          display: true,
+                          color: "rgba(200, 200, 200, 0.3)"
+                      }
+                  },
+                  x: {
+                      grid: {
+                          display: false
+                      }
+                  }
+              },
+              responsive: true,
+              plugins: {
+                  legend: {
+                      display: false
+                  },
+                  tooltip: {
+                      backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                      titleFont: {
+                          size: 16
+                      },
+                      bodyFont: {
+                          size: 14
+                      },
+                      cornerRadius: 5,
+                      caretPadding: 10
+                  }
+              }
+          }
+      });
+
+  </script>
+{% endblock %}

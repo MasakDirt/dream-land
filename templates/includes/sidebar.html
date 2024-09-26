@@ -1,0 +1,73 @@
+<nav class="pcoded-navbar menupos-fixed navbar-dark">
+  <div class="navbar-wrapper  ">
+    <div class="navbar-content scroll-div ">
+      <ul class="nav pcoded-inner-navbar ">
+        <li class="nav-item pcoded-menu-caption">
+          <label>Navigation</label>
+        </li>
+        <li class="nav-item">
+          <a href="{% url 'dream:index' %}" class="nav-link "><span
+              class="pcoded-micon"><i
+              class="feather icon-home"></i></span><span
+              class="pcoded-mtext">Home</span></a>
+        </li>
+        <li class="nav-item pcoded-menu-caption">
+          <label>Content</label>
+        </li>
+        <li class="nav-item">
+          <a href="{% url 'dream:dream-list' %}" class="nav-link "><span
+              class="pcoded-micon"><i
+              class="fa fa-book-open float-start"></i></span><span
+              class="pcoded-mtext">Dreams</span></a>
+        </li>
+        {% if user.is_authenticated %}
+          <li class="nav-item pcoded-menu-caption">
+            <label>profile</label>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'users:user-detail' pk=user.id %}"
+               class="nav-link">
+              <span
+                  class="pcoded-micon"><i
+                  class="feather icon-user"></i></span><span
+                class="pcoded-mtext">Profile</span></a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'dream:user-dream-statistic' pk=user.id %}"
+               class="nav-link">
+              <span
+                  class="pcoded-micon"><i
+                  class="feather icon-trending-up"></i></span><span
+                class="pcoded-mtext">My dreams statistic</span></a>
+          </li>
+        {% endif %}
+        <li class="nav-item pcoded-menu-caption">
+          <label>authentication</label>
+        </li>
+        {% if user.is_authenticated %}
+          <li class="nav-item">
+            <a href="#" class="nav-link"
+               onclick="document.getElementById('logout-form').submit();">
+              <span class="pcoded-micon"><i
+                  class="feather icon-unlock"></i></span>
+              <span class="pcoded-mtext">Logout</span>
+            </a>
+            <form id="logout-form"
+                  action="{% url 'logout' %}?next={{ request.path }}"
+                  method="post" style="display: none;">
+              {% csrf_token %}
+            </form>
+          </li>
+        {% else %}
+          <li class="nav-item">
+            <a href="{% url 'login' %}" class="nav-link "><span
+                class="pcoded-micon"><i
+                class="feather icon-lock"></i></span><span
+                class="pcoded-mtext">Login</span></a>
+          </li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav>
+    

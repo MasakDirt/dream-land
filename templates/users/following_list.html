@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="page-header">
+    <div class="page-block">
+      <div class="row align-items-center">
+        <div class="page-header-title">
+          <h1 class="m-b-10"><a
+              href="{% url 'users:user-detail' current_user.id %}">{{ current_user.username }}</a>
+            followings</h1>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mb-n4">
+    {% for follow in following %}
+      <div class="col-xl-4 col-md-6">
+        <div class="card user-card user-card-3 support-bar1 clickable-card"
+             data-url="{% url 'users:user-detail' follow.followed.id %}">
+          <div class="card-body">
+            <div class="text-center">
+              <div class="position-relative d-inline-block">
+                {% if follow.followed.profile.profile_picture %}
+                  <img class="img-radius img-fluid wid-150 hei-150"
+                       src="{{ follow.followed.profile.profile_picture.url }}"
+                       alt="Profile Picture">
+                {% else %}
+                  {% load static %}
+                  <img class="img-radius img-fluid wid-150"
+                       src="{% static 'images/user-image.png' %}"
+                       alt="Default Profile Picture">
+                {% endif %}
+              </div>
+            </div>
+            <h3 class="mb-1 mt-3 f-w-400">{{ follow.followed.username }}</h3>
+            <p class="mb-3 text-muted">{{ follow.followed.profile.bio }}</p>
+          </div>
+          <div class="card-footer bg-secondary text-white">
+            <div class="row text-center">
+              <div class="col">
+                <h6 class="mb-1 text-white">{{ follow.followed.dreams.count }}</h6>
+                <p class="mb-0">Dreams</p>
+              </div>
+              <div class="col">
+                <h6 class="mb-1 text-white">{{ follow.followed.followers.count }}</h6>
+                <p class="mb-0">Followers</p>
+              </div>
+              <div class="col">
+                <h6 class="mb-1 text-white">{{ follow.followed.following.count }}</h6>
+                <p class="mb-0">Following</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <h4 class="text-danger">{{ current_user.username }} following for anyone!</h4>
+    {% endfor %}
+  </div>
+
+
+  <script>
+      document.addEventListener("DOMContentLoaded", function () {
+          const cards = document.querySelectorAll('.clickable-card');
+          cards.forEach(card => {
+              card.addEventListener('click', function () {
+                  window.location.href = card.getAttribute('data-url');
+              });
+          });
+      });
+  </script>
+{% endblock %}

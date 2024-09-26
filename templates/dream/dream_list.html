@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+{% load commentary_filters %}
+{% load query_transform %}
+{% load dream_filters %}
+
+
+{% block content %}
+  <div class="page-header">
+    <div class="page-block">
+      <div class="row align-items-center">
+        <div class="col-md-12">
+          <div class="page-header-title">
+            <h1 class="m-b-10">All dreams</h1>
+
+            <a class="btn btn-primary m-b-10"
+               href="{% url 'dream:emotion-create' %}">
+              Create emotion
+            </a>
+            <a class="btn btn-primary m-b-10"
+               href="{% url 'dream:symbol-create' %}">
+              Create symbol
+            </a>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="input-group mb-3">
+            <form method="get" action="" class="w-100 d-flex">
+              <input
+                  type="text"
+                  name="title"
+                  class="form-control"
+                  placeholder="Search by title"
+                  value="{{ dream_search.initial.title|default:'' }}">
+
+              <input
+                  type="hidden"
+                  name="filter"
+                  value="{{ request.GET.filter }}">
+
+              <button
+                  class="btn btn-primary btn-icon"
+                  type="submit">
+                <i class="feather icon-search"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="input-group mb-3">
+            <form method="get" action="" class="w-100 d-flex">
+              <select name="filter" class="form-select form-control">
+                <option value="-date_recorded"
+                    {% if filter.initial.filter == "-date_recorded" %}
+                        selected
+                    {% endif %}>
+                  Newest
+                </option>
+                <option value="date_recorded"
+                    {% if filter.initial.filter == "date_recorded" %}
+                        selected
+                    {% endif %}>
+                  Oldest
+                </option>
+                <option value="likes"
+                    {% if filter.initial.filter == "likes" %}
+                        selected
+                    {% endif %}>
+                  Popular
+                </option>
+                <option value="dislikes"
+                    {% if filter.initial.filter == "dislikes" %}
+                        selected
+                    {% endif %}>
+                  Unpopular
+                </option>
+              </select>
+
+              <input
+                  type="hidden"
+                  name="title"
+                  value="{{ request.GET.title }}">
+
+              <button class="btn btn-primary btn-icon" type="submit">
+                <i class="feather icon-filter"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  {% for dream in dreams %}
+    <div class="card">
+      <div class="card-header">
+        <a href="{% url 'users:user-detail' dream.user.id %}">
+          <img class="rounded-circle img-radius hei-40 wid-40"
+               src="
+                  {% if dream.user.profile.profile_picture %}
+                      {{ dream.user.profile.profile_picture.url }}
+                  {% else %}          
+                      {% load static %}
+                      {% static 'images/user-image.png' %}
+                  {% endif %}"
+               alt="Img">
+        </a>
+        <h5 class="font-weight-normal">
+          <a href="{% url 'users:user-detail' pk=dream.user.id %}"
+             class="text-h-primary text-reset">
+            <b class="font-weight-bolder"><strong>{{ dream.user.username }}</strong></b>
+          </a> posted
+        </h5>
+        <p class="mb-0 text-muted">{{ dream.date_recorded }}</p>
+        <div class="card-header-right" 
+             style="padding: 5px; font-size: 1.3rem;">
+            {% if user == dream.user %}
+              <a href="{% url 'dream:dream-update' user_pk=user.id pk=dream.id %}"
+                 class="text-c-yellow">
+                <i class="feather icon-edit"></i>
+              </a>
+              <a href="#"
+                 onclick="document.getElementById('delete-dream-form-{{ dream.id }}').submit();"
+                 class="text-danger text-h-purple">
+                <i class="feather icon-trash-2"></i>
+              </a>
+              <form id="delete-dream-form-{{ dream.id }}"
+                    action="{% url 'dream:dream-delete' user.id dream.id %}"
+                    method="post" style="display: none;">
+                {% csrf_token %}
+              </form>
+            {% else %}
+              {% if dream.is_visited %}
+                <p><i class="fas fa-eye text-c-green"></i></p>
+              {% else %}
+                <p><i class="fas fa-eye text-muted"></i></p>
+              {% endif %}
+            {% endif %}
+        </div>
+      </div>
+      <div class="card-body">
+        <a href="{% url 'dream:dream-detail' dream.user.id dream.id %}"
+           class="text-h-primary">
+          <h2>{{ dream.title }}</h2>
+        </a>
+        <h6 class="text-muted mb-0">
+          {% if dream.description|length > 160 %}
+            {{ dream.description|slice:160 }}...
+          {% else %}
+            {{ dream.description }}
+          {% endif %}
+        </h6>
+      </div>
+      <div class="card-body border-top border-bottom">
+        <ul class="list-inline m-0">
+          <li class="list-inline-item">
+            <a href="#"
+               onclick="document.getElementById('like-form-{{ dream.id }}').submit();"
+               class="text-danger text-h-danger">
+              {% if dream|is_authorized_user_liked:user %}
+                <i class="feather icon-heart-on mr-2"></i>
+              {% else %}
+                <i class="feather icon-heart mr-2"></i>
+              {% endif %}
+              {{ dream.likes.count }}
+            </a>
+            <form id="like-form-{{ dream.id }}"
+                  action="{% url 'dream:dream-like' dream.user.id dream.id %}"
+                  method="post" style="display: none;">
+              {% csrf_token %}
+            </form>
+          </li>
+          <li class="list-inline-item">
+            <a href="#"
+               onclick="document.getElementById('dislike-form-{{ dream.id }}').submit();"
+               class="text-muted text-h-primary">
+              {% if dream|is_authorized_user_disliked:user %}
+                <i class="fas fa-thumbs-down mr-2"></i>
+              {% else %}
+                <i class="feather icon-thumbs-down mr-2"></i>
+              {% endif %}
+              {{ dream.dislikes.count }}
+            </a>
+            <form id="dislike-form-{{ dream.id }}"
+                  action="{% url 'dream:dream-dislike' dream.user.id dream.id %}"
+                  method="post" style="display: none;">
+              {% csrf_token %}
+            </form>
+          </li>
+        </ul>
+      </div>
+      <div class="card-body">
+        <div class="row justify-content-between mb-4">
+          <div class="col-auto">
+            <a href="{% url 'dream:dream-detail' dream.user.id dream.pk %}"
+               class="text-muted text-h-primary">Comment
+              ({{ dream.commentaries.count }})</a></div>
+        </div>
+        <div class="media mb-0">
+          <img
+              src="
+                      {% if user.profile.profile_picture %}
+                        {{ user.profile.profile_picture.url }}
+                      {% else %}
+                        {% static 'images/user-image.png' %}
+                      {% endif %}
+"
+              alt="user image"
+              class="img-radius wid-40 hei-40 align-top m-r-15">
+          <div class="media-body">
+            <div class="input-group mb-3">
+              <input type="text" id="comment-input-{{ dream.id }}"
+                     name="content"
+                     class="form-control form-control border-0 shadow-none px-0"
+                     placeholder="Write comment here! . . .">
+              <div class="input-group-append">
+                <button class="btn btn-primary"
+                        onclick="submitCommentForm('{{ dream.id }}');"
+                        type="button">
+                  <i class="feather icon-message-circle"></i>
+                </button>
+              </div>
+              <form id="comment-create-{{ dream.id }}"
+                    action="{% url 'dream:commentary-create' dream.user.id dream.id %}"
+                    method="post" style="display: none;" novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="content"
+                       id="hidden-comment-{{ dream.id }}">
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <h5>No dreams!</h5>
+  {% endfor %}
+
+  <script>
+      function submitCommentForm(dreamId) {
+          document.getElementById('hidden-comment-' + dreamId).value = document.getElementById('comment-input-' + dreamId).value;
+          document.getElementById('comment-create-' + dreamId).submit();
+      }
+  </script>
+
+{% endblock %}

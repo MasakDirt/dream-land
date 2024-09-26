@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <title>Dream Land</title>
+
+  <meta charset="utf-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="description" content=""/>
+  <meta name="keywords" content="">
+
+  {% load static %}
+  <link rel="stylesheet"
+        href="{% static 'assets/css/style.css' %}">
+  <link rel="icon" href="{% static 'images/favicon.png' %}"
+        type="image/icon type">
+</head>
+
+<body>
+
+{% include 'includes/sidebar.html' %}
+{% include 'includes/navigation.html' %}
+
+<div class="pcoded-main-container">
+  <div class="auth-wrapper">
+    <div class="auth-content">
+      <div class="card">
+        <div class="row align-items-center text-center">
+          <div class="col-md-12">
+            <div class="card-body">
+              {% load static %}
+              <img src="{% static 'images/logo-blue.png' %}" alt=""
+                   class="img-fluid mb-4">
+              <h4 class="mb-3 f-w-400">Update profile</h4>
+
+              <form method="post" action="" novalidate
+                    enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form.media }}
+                <div class="form-group mb-3">
+                  <label for="{{ form.bio.id_for_label }}"
+                         class="form-label">Bio: </label>
+                  <textarea class="form-control" name="bio" cols="40" rows="10" id="id_bio">{% if form.bio.value %}{{ form.bio.value }}{% endif %}</textarea>
+                  <div
+                      class="form-text text-danger">{{ form.bio.errors }}</div>
+                </div>
+                <div class="input-group mb-4">
+                  <label for="{{ form.profile_picture.id_for_label }}"
+                         class="form-label">Profile Picture:</label>
+                  <input type="file" name="profile_picture" accept="image/*" id="id_profile_picture">
+                  <div
+                      class="form-text text-danger">{{ form.profile_picture.errors }}</div>
+                </div>
+                <button type="submit"
+                        class="btn btn-block btn-primary mt-2 mb-4">
+                  Update
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
+

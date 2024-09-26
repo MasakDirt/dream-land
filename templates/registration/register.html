@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <title>Dream Land</title>
+
+  <meta charset="utf-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="description" content=""/>
+  <meta name="keywords" content="">
+
+  {% load static %}
+  <link rel="stylesheet"
+        href="{% static 'assets/css/style.css' %}">
+  <link rel="icon" href="{% static 'images/favicon.png' %}"
+        type="image/icon type">
+</head>
+
+<body>
+
+{% include 'includes/sidebar.html' %}
+{% include 'includes/navigation.html' %}
+
+<div class="pcoded-main-container">
+  <div class="auth-wrapper">
+    <div class="auth-content">
+      <div class="card">
+        <div class="row align-items-center text-center">
+          <div class="col-md-12">
+            <div class="card-body">
+              {% load static %}
+              <img src="{% static 'images/logo-blue.png' %}" alt=""
+                   class="img-fluid mb-4">
+              <h4 class="mb-3 f-w-400">Sign up</h4>
+
+              <form method="post" action="">
+                {% csrf_token %}
+                {% for error in form.username.errors %}
+                  <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+                <div class="input-group mb-3">
+                <span class="input-group-text"><i
+                    class="feather icon-user"></i></span>
+                  <input type="text" class="form-control" name="username"
+                         maxlength="150" autocapitalize="none"
+                         autocomplete="username" autofocus="" required=""
+                         aria-describedby="id_username_helptext"
+                         placeholder="Username">
+                </div>
+
+                {% for error in form.email.errors %}
+                  <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+                <div class="input-group mb-3">
+                <span class="input-group-text"><i
+                    class="feather icon-mail"></i></span>
+                  <input type="email" class="form-control"
+                         placeholder="Email address"
+                         name="email" maxlength="254">
+                </div>
+
+                {% for error in form.first_name.errors %}
+                  <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+                <div class="input-group mb-3">
+                <span class="input-group-text"><i
+                    class="feather icon-eye"></i></span>
+                  <input type="text" name="first_name" maxlength="150"
+                         placeholder="First name" class="form-control">
+                </div>
+
+                {% for error in form.last_name.errors %}
+                  <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+                <div class="input-group mb-3">
+                <span class="input-group-text"><i
+                    class="fas fa-fingerprint"></i></span>
+                  <input type="text" name="last_name" maxlength="150"
+                         placeholder="Last name" class="form-control">
+                </div>
+
+                {% for error in form.birth_date.errors %}
+                  <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+                <div class="input-group mb-3">
+                <span class="input-group-text"><i
+                    class="feather icon-calendar"> Birth</i></span>
+                  <input type="date" name="birth_date"
+                         class="form-control" id="birth_date">
+                </div>
+
+
+                {% for error in form.password1.errors %}
+                  <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+                <div class="input-group mb-4">
+                <span class="input-group-text"><i
+                    class="feather icon-lock"></i></span>
+                  <input type="password" name="password1"
+                         autocomplete="new-password"
+                         aria-describedby="id_password1_helptext"
+                         aria-autocomplete="list" class="form-control"
+                         placeholder="Password">
+                </div>
+
+                {% for error in form.password2.errors %}
+                  <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+                <div class="input-group mb-4">
+                <span class="input-group-text"><i
+                    class="feather icon-lock"></i></span>
+                  <input type="password" name="password2"
+                         autocomplete="new-password"
+                         class="form-control"
+                         placeholder="Repeat your password">
+                </div>
+
+                <input type="hidden"
+                       name="usable_password"
+                       value="true"
+                       class="radiolist inline"
+                       id="id_usable_password_0">
+                <button type="submit"
+                        class="btn btn-primary btn-block mt-2 mb-4">
+                  Sign up
+                </button>
+                <p class="mb-2">Already have an account? <a
+                    href="{% url 'login' %}" class="f-w-400">Signin</a></p>
+              </form>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
