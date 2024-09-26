@@ -9,9 +9,6 @@ from dto.dto import GraphicDto
 from dream.models import Dream, Commentary
 
 
-VISIT_RECORD = 0
-
-
 def get_dream_labels(query_set: QuerySet[dict]) -> list[str]:
     return [
         f"{datetime.date(
@@ -80,16 +77,16 @@ def month_statistic_counter() -> dict:
 
 
 def index(request: HttpRequest) -> HttpResponse:
-    global VISIT_RECORD
-
     visit_count = request.session.get("visit_count", 0)
     request.session["visit_count"] = visit_count + 1
-    if VISIT_RECORD < visit_count + 1:
-        VISIT_RECORD = visit_count + 1
+
+    visit_record = request.session.get("visit_record", 0)
+    if visit_record < visit_count + 1:
+        request.session["visit_record"] = visit_count + 1
 
     context = {
         "visit_count": visit_count + 1,
-        "visit_record": VISIT_RECORD,
+        "visit_record": request.session["visit_record"],
         **get_graphics(),
         **month_statistic_counter(),
     }
