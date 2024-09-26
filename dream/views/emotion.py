@@ -7,5 +7,5 @@ from dream.models import Emotion
 
 class EmotionCreateView(LoginRequiredMixin, CreateView):
     model = Emotion
-    fields = "__all__"
+    fields = ("name", "description")
     success_url = reverse_lazy("dream:dream-list")
