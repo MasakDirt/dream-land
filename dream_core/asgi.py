@@ -13,7 +13,7 @@ import django
 from django.core.asgi import get_asgi_application
 
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dream_land1.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dream_core.settings")
 django.setup()
 
 application = get_asgi_application()
