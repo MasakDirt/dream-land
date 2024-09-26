@@ -10,7 +10,7 @@ from django.db.models import (
     QuerySet
 )
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
-from django.shortcuts import redirect, get_object_or_404, render
+from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views.generic import (
     ListView,
@@ -28,6 +28,7 @@ from dream.forms import (
     DreamForm
 )
 from dream.models import Dream, Symbol, Emotion, DreamLike, DreamDislike
+from dream.views.abstract import ModelAddRemoveLike
 from dto.dto import DreamListDto, EmotionDto, SymbolDto
 
 
@@ -212,54 +213,16 @@ class DreamDeleteView(LoginRequiredMixin, DeleteView):
         return self.request.user == self.object.user
 
 
-class DreamAddRemoveLike(LoginRequiredMixin, View):
-    def post(
-            self, request: HttpRequest,
-            user_pk: str,
-            pk: str
-    ) -> HttpResponse:
-        user = request.user
-        dream = get_object_or_404(Dream, pk=pk)
-        dream_like = DreamLike.objects.filter(owner=user, dream=dream)
-        dream_dislike = DreamDislike.objects.filter(owner=user, dream=dream)
-
-        if dream_dislike.exists():
-            dream_dislike.delete()
-
-        if dream_like.exists():
-            dream_like.delete()
-        else:
-            DreamLike.objects.create(owner=user, dream=dream)
-
-        return redirect(self.request.META.get(
-            "HTTP_REFERER",
-            "dream:dream-list",
-        ))
+class DreamAddRemoveLike(ModelAddRemoveLike):
+    model = Dream
+    model_like = DreamLike
+    model_dislike = DreamDislike
 
 
-class DreamAddRemoveDislike(LoginRequiredMixin, View):
-    def post(
-            self, request: HttpRequest,
-            user_pk: str,
-            pk: str
-    ) -> HttpResponse:
-        user = request.user
-        dream = get_object_or_404(Dream, pk=pk)
-        dream_like = DreamLike.objects.filter(owner=user, dream=dream)
-        dream_dislike = DreamDislike.objects.filter(owner=user, dream=dream)
-
-        if dream_like.exists():
-            dream_like.delete()
-
-        if dream_dislike.exists():
-            dream_dislike.delete()
-        else:
-            DreamDislike.objects.create(owner=user, dream=dream)
-
-        return redirect(self.request.META.get(
-            "HTTP_REFERER",
-            "dream:dream-list",
-        ))
+class DreamAddRemoveDislike(ModelAddRemoveLike):
+    model = Dream
+    model_like = DreamDislike
+    model_dislike = DreamLike
 
 
 class DreamStatisticView(LoginRequiredMixin, View):
