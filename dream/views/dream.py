@@ -57,8 +57,7 @@ class DreamListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self) -> QuerySet[Dream]:
         self.queryset = (
-            Dream.objects.select_related("user")
-            .prefetch_related(
+            Dream.objects.prefetch_related(
                 "user__profile",
                 "commentaries",
                 "dislikes",
@@ -119,8 +118,6 @@ class DreamDetailView(LoginRequiredMixin, DetailView):
             "dislikes",
             "emotions",
             "symbols",
-            "commentaries",
-            "commentaries__owner",
             "commentaries__owner__profile",
             "commentaries__likes",
             "commentaries__dislikes",
@@ -268,7 +265,6 @@ class DreamAddRemoveDislike(LoginRequiredMixin, View):
 class DreamStatisticView(LoginRequiredMixin, View):
     def get(self, request: HttpRequest, pk: str) -> HttpResponse:
         user = get_user_model().objects.prefetch_related(
-            "dreams",
             "dreams__emotions",
             "dreams__symbols",
         ).get(pk=pk)
