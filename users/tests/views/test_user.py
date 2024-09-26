@@ -133,4 +133,3 @@ class PrivateUserTests(TestCase):
             "You do not have permission to delete this user.",
             response.content.decode()
         )
-
