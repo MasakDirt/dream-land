@@ -56,15 +56,13 @@ class DreamListView(LoginRequiredMixin, ListView):
         return context
 
     def get_queryset(self) -> QuerySet[Dream]:
-        self.queryset = (
-            Dream.objects.select_related("user")
-            .prefetch_related(
-                "user__profile",
-                "commentaries",
-                "dislikes",
-                "likes"
-            )
+        self.queryset = Dream.objects.prefetch_related(
+            "user__profile",
+            "commentaries",
+            "dislikes",
+            "likes"
         )
+
         search_form = DreamSearchForm(self.request.GET)
         if search_form.is_valid():
             title_cleaned_data = search_form.cleaned_data["title"]
@@ -113,14 +111,12 @@ class DreamDetailView(LoginRequiredMixin, DetailView):
 
     def get_object(self, queryset: QuerySet = None) -> Dream:
         dream_pk = self.kwargs["pk"]
-        dream = Dream.objects.select_related("user").prefetch_related(
+        dream = Dream.objects.prefetch_related(
             "user__profile",
             "likes",
             "dislikes",
             "emotions",
             "symbols",
-            "commentaries",
-            "commentaries__owner",
             "commentaries__owner__profile",
             "commentaries__likes",
             "commentaries__dislikes",
@@ -268,7 +264,6 @@ class DreamAddRemoveDislike(LoginRequiredMixin, View):
 class DreamStatisticView(LoginRequiredMixin, View):
     def get(self, request: HttpRequest, pk: str) -> HttpResponse:
         user = get_user_model().objects.prefetch_related(
-            "dreams",
             "dreams__emotions",
             "dreams__symbols",
         ).get(pk=pk)
