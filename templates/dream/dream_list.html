@@ -114,30 +114,30 @@
           </a> posted
         </h5>
         <p class="mb-0 text-muted">{{ dream.date_recorded }}</p>
-        <div class="card-header-right" 
+        <div class="card-header-right"
              style="padding: 5px; font-size: 1.3rem;">
-            {% if user == dream.user %}
-              <a href="{% url 'dream:dream-update' user_pk=user.id pk=dream.id %}"
-                 class="text-c-yellow">
-                <i class="feather icon-edit"></i>
-              </a>
-              <a href="#"
-                 onclick="document.getElementById('delete-dream-form-{{ dream.id }}').submit();"
-                 class="text-danger text-h-purple">
-                <i class="feather icon-trash-2"></i>
-              </a>
-              <form id="delete-dream-form-{{ dream.id }}"
-                    action="{% url 'dream:dream-delete' user.id dream.id %}"
-                    method="post" style="display: none;">
-                {% csrf_token %}
-              </form>
+          {% if user == dream.user %}
+            <a href="{% url 'dream:dream-update' user_pk=user.id pk=dream.id %}"
+               class="text-c-yellow">
+              <i class="feather icon-edit"></i>
+            </a>
+            <a href="#"
+               onclick="document.getElementById('delete-dream-form-{{ dream.id }}').submit();"
+               class="text-danger text-h-purple">
+              <i class="feather icon-trash-2"></i>
+            </a>
+            <form id="delete-dream-form-{{ dream.id }}"
+                  action="{% url 'dream:dream-delete' user.id dream.id %}"
+                  method="post" style="display: none;">
+              {% csrf_token %}
+            </form>
+          {% else %}
+            {% if dream.is_visited %}
+              <p><i class="fas fa-eye text-c-green"></i></p>
             {% else %}
-              {% if dream.is_visited %}
-                <p><i class="fas fa-eye text-c-green"></i></p>
-              {% else %}
-                <p><i class="fas fa-eye text-muted"></i></p>
-              {% endif %}
+              <p><i class="fas fa-eye text-muted"></i></p>
             {% endif %}
+          {% endif %}
         </div>
       </div>
       <div class="card-body">
@@ -170,6 +170,7 @@
                   action="{% url 'dream:dream-like' dream.user.id dream.id %}"
                   method="post" style="display: none;">
               {% csrf_token %}
+              <input type="hidden" name="next" value="{{ request.path }}">
             </form>
           </li>
           <li class="list-inline-item">
@@ -187,6 +188,7 @@
                   action="{% url 'dream:dream-dislike' dream.user.id dream.id %}"
                   method="post" style="display: none;">
               {% csrf_token %}
+              <input type="hidden" name="next" value="{{ request.path }}">
             </form>
           </li>
         </ul>

@@ -87,6 +87,7 @@
                 action="{% url 'dream:dream-like' dream.user.id dream.id %}"
                 method="post" style="display: none;">
             {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.path }}">
           </form>
         </li>
         <li class="list-inline-item" style="font-size: 1.15rem;">
@@ -104,6 +105,7 @@
                 action="{% url 'dream:dream-dislike' dream.user.id dream.id %}"
                 method="post" style="display: none;">
             {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.path }}">
           </form>
         </li>
       </ul>
@@ -172,12 +174,14 @@
                   action="{% url 'dream:comment-like' dream.user.id dream.id comment.id %}"
                   method="post" style="display: none;">
               {% csrf_token %}
+              <input type="hidden" name="next" value="{{ request.path }}">
             </form>
 
             <form id="comment-dislike-form-{{ comment.id }}"
                   action="{% url 'dream:comment-dislike' dream.user.id dream.id comment.id %}"
                   method="post" style="display: none;">
               {% csrf_token %}
+              <input type="hidden" name="next" value="{{ request.path }}">
             </form>
             </p>
           </div>
@@ -193,7 +197,7 @@
                       {% endif %}"
              alt="user image"
              class="img-radius wid-40 hei-40 align-top m-r-15">
-               <div class="media-body">
+        <div class="media-body">
           <div class="input-group mb-3">
             <input type="text" id="comment-input-{{ dream.id }}"
                    name="content"
