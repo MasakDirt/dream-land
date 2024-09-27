@@ -10,8 +10,8 @@ from dream.views.abstract import ModelAddRemoveLike
 
 class CommentAddRemoveLike(ModelAddRemoveLike):
     model = Commentary
-    model_like = CommentaryDislike
-    model_dislike = CommentaryLike
+    model_like = CommentaryLike
+    model_dislike = CommentaryDislike
 
 
 class CommentAddRemoveDislike(ModelAddRemoveLike):
