@@ -11,6 +11,7 @@ from users.views import (
     FollowersListView,
 )
 
+
 urlpatterns = [
     path("<int:pk>/", UserDetailView.as_view(), name="user-detail"),
     path(

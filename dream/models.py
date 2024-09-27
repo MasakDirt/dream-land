@@ -1,9 +1,7 @@
-from django.contrib.auth.models import AbstractUser
+from django.conf import settings
 from django.db import models
 from django.http import HttpResponse
 from django.urls import reverse
-
-from django.conf import settings
 
 
 class Emotion(models.Model):

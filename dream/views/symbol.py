@@ -7,5 +7,5 @@ from dream.models import Symbol
 
 class SymbolCreateView(LoginRequiredMixin, CreateView):
     model = Symbol
-    fields = "__all__"
+    fields = ("name", "description")
     success_url = reverse_lazy("dream:dream-list")
