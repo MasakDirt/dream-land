@@ -6,7 +6,7 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 
 from dto.dto import GraphicDto
-from dream.models import Dream, Commentary
+from dream.models import Dream, Commentary, DreamLike, DreamDislike, CommentaryLike, CommentaryDislike
 
 
 def get_dream_labels(query_set: QuerySet[dict]) -> list[str]:
@@ -79,6 +79,37 @@ def month_statistic_counter() -> dict:
     }
 
 
+def additional_stats() -> dict:
+    # Total likes and dislikes
+    dream_likes_count = DreamLike.objects.count()
+    dream_dislikes_count = DreamDislike.objects.count()
+    commentary_likes_count = CommentaryLike.objects.count()
+    commentary_dislikes_count = CommentaryDislike.objects.count()
+
+    # Recent activity (last 7 days)
+    seven_days_ago = datetime.datetime.now() - datetime.timedelta(days=7)
+    recent_dreams = Dream.objects.filter(date_recorded__gte=seven_days_ago).count()
+    recent_commentaries = Commentary.objects.filter(created_time__gte=seven_days_ago).count()
+    recent_users = get_user_model().objects.filter(date_joined__gte=seven_days_ago).count()
+
+    # Most active user (by dreams)
+    most_active_user = Dream.objects.values('user__username').annotate(dream_count=Count('user')).order_by('-dream_count').first()
+    most_active_username = most_active_user['user__username'] if most_active_user else None
+    most_active_count = most_active_user['dream_count'] if most_active_user else 0
+
+    return {
+        "dream_likes_count": dream_likes_count,
+        "dream_dislikes_count": dream_dislikes_count,
+        "commentary_likes_count": commentary_likes_count,
+        "commentary_dislikes_count": commentary_dislikes_count,
+        "recent_dreams": recent_dreams,
+        "recent_commentaries": recent_commentaries,
+        "recent_users": recent_users,
+        "most_active_username": most_active_username,
+        "most_active_count": most_active_count,
+    }
+
+
 def index(request: HttpRequest) -> HttpResponse:
     visit_count = request.session.get("visit_count", 0)
     request.session["visit_count"] = visit_count + 1
@@ -92,6 +123,7 @@ def index(request: HttpRequest) -> HttpResponse:
         "visit_record": request.session["visit_record"],
         **get_graphics(),
         **month_statistic_counter(),
+        **additional_stats(),
     }
 
     return render(request, "dream/index.html", context=context)

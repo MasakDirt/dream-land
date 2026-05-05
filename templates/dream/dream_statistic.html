@@ -2,231 +2,612 @@
 
 {% block content %}
 
-  <div class="page-header">
-    <div class="page-block">
-      <div class="row align-items-center">
-        <div class="col-md-12 text-center">
-          <div class="page-header-title">
-            <h1 class="m-b-10">You have {{ count_dreams }} dreams</h1>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap');
+
+  .stats-page {
+    font-family: 'DM Sans', sans-serif;
+    padding: 2rem 1rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  /* ── Header ── */
+  .stats-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .stats-header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    font-weight: 400;
+    color: #1a2e12;
+    margin: 0;
+  }
+
+  .dreams-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #EAF3DE;
+    border: 0.5px solid #C0DD97;
+    border-radius: 999px;
+    padding: 5px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #3B6D11;
+  }
+
+  /* ── Two-column layout ── */
+  .stats-columns {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .stats-col {
+    flex: 1;
+    min-width: 280px;
+  }
+
+  .section-title {
+    font-weight: 600;
+    color: #3B6D11;
+    margin: 0 0 14px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-size: 11px;
+  }
+
+  /* ── Rank Cards ── */
+  .rank-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .rank-card {
+    background: #fff;
+    border: 0.5px solid #e0e8d4;
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .rank-card:hover {
+    border-color: #C0DD97;
+    box-shadow: 0 2px 8px rgba(63,109,17,0.07);
+  }
+
+  .rank-badge {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .badge-1 { background: #C0DD97; color: #27500A; }
+  .badge-2 { background: #D3D1C7; color: #444441; }
+  .badge-3 { background: #F5C4B3; color: #712B13; }
+
+  .rank-info { flex: 1; min-width: 0; }
+  .rank-name { font-size: 14px; font-weight: 500; color: #1a2e12; margin: 0; }
+  .rank-count { font-size: 12px; color: #6b7c5e; margin: 0; }
+
+  .rank-label {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 999px;
+  }
+
+  .label-1 { background: #EAF3DE; color: #3B6D11; }
+  .label-2 { background: #F1EFE8; color: #5F5E5A; }
+  .label-3 { background: #FAECE7; color: #993C1D; }
+
+  /* ── Meaning Card ── */
+  .meaning-card {
+    background: #f6faf0;
+    border: 0.5px solid #C0DD97;
+    border-left: 3px solid #639922;
+    border-radius: 0 10px 10px 0;
+    padding: 12px 16px;
+    margin-top: 14px;
+  }
+
+  .meaning-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #3B6D11;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 0 0 5px;
+  }
+
+  .meaning-text {
+    font-size: 13px;
+    color: #2e4a1f;
+    margin: 0;
+    line-height: 1.65;
+  }
+
+  /* ── Chart Card ── */
+  .chart-card {
+    background: #fff;
+    border: 0.5px solid #e0e8d4;
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 14px;
+  }
+
+  .chart-card-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6b7c5e;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 0 0 12px;
+  }
+
+  /* ── AI Summary Card ── */
+  .ai-summary-card {
+    background: #fff;
+    border: 0.5px solid #e0e8d4;
+    border-radius: 16px;
+    padding: 22px 24px;
+    margin-top: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ai-summary-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #639922, #97C459, #C0DD97);
+  }
+
+  .ai-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .ai-card-identity {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .ai-avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: #EAF3DE;
+    border: 1.5px solid #C0DD97;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .ai-name { font-size: 13px; font-weight: 600; color: #3B6D11; margin: 0; }
+  .ai-role { font-size: 11px; color: #6b7c5e; margin: 0; }
+
+  /* ── Generate Button ── */
+  .btn-generate {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #3B6D11;
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    padding: 9px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+  }
+
+  .btn-generate:hover { background: #2e5509; }
+  .btn-generate:active { transform: scale(0.97); }
+  .btn-generate:disabled { background: #9db98a; cursor: not-allowed; }
+
+  .btn-regenerate {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    color: #3B6D11;
+    border: 0.5px solid #C0DD97;
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: background 0.15s;
+    margin-top: 16px;
+  }
+
+  .btn-regenerate:hover { background: #f6faf0; }
+
+  /* ── Typing Dots ── */
+  .typing-dots {
+    display: none;
+    align-items: center;
+    gap: 5px;
+    padding: 18px 0 6px;
+  }
+
+  .typing-dots.active { display: flex; }
+
+  .typing-dots span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #97C459;
+    animation: bounce 1.2s infinite ease-in-out;
+  }
+
+  .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes bounce {
+    0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+    40%           { transform: translateY(-7px); opacity: 1; }
+  }
+
+  /* ── Rendered Markdown ── */
+  #summary-content {
+    display: none;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 0.5px solid #e0e8d4;
+    font-size: 14px;
+    color: #2e3d22;
+    line-height: 1.75;
+  }
+
+  #summary-content.visible { display: block; }
+
+  /* markdown styles inside the summary */
+  #summary-content p { margin: 0 0 10px; }
+  #summary-content p:last-child { margin-bottom: 0; }
+  #summary-content strong { font-weight: 600; color: #3B6D11; }
+  #summary-content em { font-style: italic; color: #4e6e38; }
+  #summary-content ul { padding-left: 18px; margin: 8px 0; }
+  #summary-content li { margin-bottom: 4px; }
+
+  /* ── Error ── */
+  .summary-error {
+    display: none;
+    margin-top: 14px;
+    padding: 10px 14px;
+    background: #fff3f0;
+    border: 0.5px solid #f5c4b3;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #993C1D;
+  }
+
+  .summary-error.visible { display: block; }
+</style>
+
+<div class="stats-page">
+
+  <!-- Header -->
+  <div class="stats-header">
+    <h1>Your dream world</h1>
+    <span class="dreams-pill">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+        <path d="M13.5 7A5.5 5.5 0 018 12.5a5.5 5.5 0 01-5.5-5.5A5.5 5.5 0 018 1.5c.6 0 1.2.1 1.7.3A4 4 0 0014.5 5.5a5.5 5.5 0 01-1 1.5z" stroke="#3B6D11" stroke-width="1.3" fill="none"/>
+        <circle cx="8" cy="7" r="1.5" fill="#3B6D11"/>
+      </svg>
+      {{ count_dreams }} dream{% if count_dreams != 1 %}s{% endif %} recorded
+    </span>
+  </div>
+
+  <!-- Two columns -->
+  <div class="stats-columns">
+
+    <!-- Emotions -->
+    <div class="stats-col">
+      <p class="section-title">Top emotions</p>
+      <div class="rank-list">
+        {% if top_of_emotions.0 %}
+        <div class="rank-card">
+          <div class="rank-badge badge-1">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 1l1.8 3.6L14 5.5l-3 2.9.7 4.1L8 10.4l-3.7 2.1.7-4.1-3-2.9 4.2-.9L8 1z" fill="#27500A"/></svg>
           </div>
+          <div class="rank-info">
+            <p class="rank-name">{{ top_of_emotions.0.name }}</p>
+            <p class="rank-count">{{ top_of_emotions.0.count }} times</p>
+          </div>
+          <span class="rank-label label-1">1st</span>
         </div>
+        {% endif %}
+        {% if top_of_emotions.1 %}
+        <div class="rank-card">
+          <div class="rank-badge badge-2">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="#5F5E5A" stroke-width="1.3"/><path d="M8 5v3.5l2 2" stroke="#5F5E5A" stroke-width="1.3" stroke-linecap="round"/></svg>
+          </div>
+          <div class="rank-info">
+            <p class="rank-name">{{ top_of_emotions.1.name }}</p>
+            <p class="rank-count">{{ top_of_emotions.1.count }} times</p>
+          </div>
+          <span class="rank-label label-2">2nd</span>
+        </div>
+        {% endif %}
+        {% if top_of_emotions.2 %}
+        <div class="rank-card">
+          <div class="rank-badge badge-3">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 2l1.5 3 3.3.5-2.4 2.3.6 3.2L8 9.5l-3 1.5.6-3.2L3.2 5.5l3.3-.5L8 2z" fill="#F0997B"/></svg>
+          </div>
+          <div class="rank-info">
+            <p class="rank-name">{{ top_of_emotions.2.name }}</p>
+            <p class="rank-count">{{ top_of_emotions.2.count }} times</p>
+          </div>
+          <span class="rank-label label-3">3rd</span>
+        </div>
+        {% endif %}
+      </div>
+
+      {% if top_of_emotions.0 %}
+      <div class="meaning-card">
+        <p class="meaning-label">What "{{ top_of_emotions.0.name }}" means</p>
+        <p class="meaning-text">{{ top_of_emotions.0.description }}</p>
+      </div>
+      {% endif %}
+
+      <div class="chart-card">
+        <p class="chart-card-label">{{ top_of_emotions|length }} most frequent emotions</p>
+        <canvas id="chart-emotions" height="160"></canvas>
       </div>
     </div>
+
+    <!-- Symbols -->
+    <div class="stats-col">
+      <p class="section-title">Top symbols</p>
+      <div class="rank-list">
+        {% if top_of_symbols.0 %}
+        <div class="rank-card">
+          <div class="rank-badge badge-1">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 1l1.8 3.6L14 5.5l-3 2.9.7 4.1L8 10.4l-3.7 2.1.7-4.1-3-2.9 4.2-.9L8 1z" fill="#27500A"/></svg>
+          </div>
+          <div class="rank-info">
+            <p class="rank-name">{{ top_of_symbols.0.name }}</p>
+            <p class="rank-count">{{ top_of_symbols.0.count }} times</p>
+          </div>
+          <span class="rank-label label-1">1st</span>
+        </div>
+        {% endif %}
+        {% if top_of_symbols.1 %}
+        <div class="rank-card">
+          <div class="rank-badge badge-2">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="#5F5E5A" stroke-width="1.3"/><path d="M8 5v3.5l2 2" stroke="#5F5E5A" stroke-width="1.3" stroke-linecap="round"/></svg>
+          </div>
+          <div class="rank-info">
+            <p class="rank-name">{{ top_of_symbols.1.name }}</p>
+            <p class="rank-count">{{ top_of_symbols.1.count }} times</p>
+          </div>
+          <span class="rank-label label-2">2nd</span>
+        </div>
+        {% endif %}
+        {% if top_of_symbols.2 %}
+        <div class="rank-card">
+          <div class="rank-badge badge-3">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 2l1.5 3 3.3.5-2.4 2.3.6 3.2L8 9.5l-3 1.5.6-3.2L3.2 5.5l3.3-.5L8 2z" fill="#F0997B"/></svg>
+          </div>
+          <div class="rank-info">
+            <p class="rank-name">{{ top_of_symbols.2.name }}</p>
+            <p class="rank-count">{{ top_of_symbols.2.count }} times</p>
+          </div>
+          <span class="rank-label label-3">3rd</span>
+        </div>
+        {% endif %}
+      </div>
+
+      {% if top_of_symbols.0 %}
+      <div class="meaning-card">
+        <p class="meaning-label">What "{{ top_of_symbols.0.name }}" means</p>
+        <p class="meaning-text">{{ top_of_symbols.0.description }}</p>
+      </div>
+      {% endif %}
+
+      <div class="chart-card">
+        <p class="chart-card-label">{{ top_of_symbols|length }} most frequent symbols</p>
+        <canvas id="chart-symbols" height="160"></canvas>
+      </div>
+    </div>
+
   </div>
 
-  <div class="row justify-content-center mt-5">
-    <div class="col-md-6">
-      <h2 class="text-center">Top Emotions</h2>
-
-      <div class="pedestal d-flex justify-content-center align-items-end">
-        <div class="second mx-2 text-center">
-          <i class="fas fa-fist-raised"></i>
-          <br>
-          <span
-              class="medal-text">{{ top_of_emotions.1.name }} ({{ top_of_emotions.1.count }})</span>
-          <br>2nd Place
+  <!-- AI Summary Card -->
+  <div class="ai-summary-card">
+    <div class="ai-card-header">
+      <div class="ai-card-identity">
+        <div class="ai-avatar">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="9" stroke="#3B6D11" stroke-width="1.5"/>
+            <path d="M8 11c0-1.1.9-2 2-2h4a2 2 0 012 2v1a2 2 0 01-2 2h-4a2 2 0 01-2-2v-1z" fill="#3B6D11"/>
+            <circle cx="9.5" cy="10" r="1" fill="#EAF3DE"/>
+            <circle cx="14.5" cy="10" r="1" fill="#EAF3DE"/>
+            <path d="M9 15.5c.8.8 2 1.5 3 1.5s2.2-.7 3-1.5" stroke="#3B6D11" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
         </div>
-
-        <div class="first mx-2 text-center">
-          <i class="fas fa-star"></i>
-          <br>
-          <span
-              class="medal-text">{{ top_of_emotions.0.name }} ({{ top_of_emotions.0.count }})</span>
-          <br>1st Place
-        </div>
-
-        <div class="third mx-2 text-center">
-          <i class="fas fa-medal"></i>
-          <br>
-          <span
-              class="medal-text">{{ top_of_emotions.2.name }} ({{ top_of_emotions.2.count }})</span>
-          <br>3rd Place
+        <div>
+          <p class="ai-name">Dream analyst</p>
+          <p class="ai-role">AI-powered insight</p>
         </div>
       </div>
-      <br>
 
-      <div>
-        <h5>Your most usable emotion "{{ top_of_emotions.0.name }}" in dreams
-          means:</h5>
-        <p>{{ top_of_emotions.0.description }}</p>
-      </div>
-
-      <div class="card">
-        <div class="card-header">
-          <h5>{{ top_of_emotions|length }} most usable emotions</h5>
-        </div>
-        <div class="card-body">
-          <canvas id="line-chart-emotion"></canvas>
-        </div>
-      </div>
+      <button class="btn-generate" id="btn-generate" onclick="generateSummary()">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+          <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.42 1.42M11.53 11.53l1.42 1.42M3.05 12.95l1.42-1.42M11.53 4.47l1.42-1.42" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        Analyse my dreams
+      </button>
     </div>
 
-    <div class="col-md-6">
-      <h2 class="text-center">Top Symbols</h2>
-
-      <div class="pedestal d-flex justify-content-center align-items-end">
-        <div class="second mx-2 text-center">
-          <i class="fas fa-fist-raised"></i>
-          <br>
-          <span
-              class="medal-text">{{ top_of_symbols.1.name }} ({{ top_of_symbols.1.count }})</span>
-          <br>2nd Place
-        </div>
-
-        <div class="first mx-2 text-center">
-          <i class="fas fa-star"></i>
-          <br>
-          <span
-              class="medal-text">{{ top_of_symbols.0.name }} ({{ top_of_symbols.0.count }})</span>
-          <br>1st Place
-        </div>
-
-        <div class="third mx-2 text-center">
-          <i class="fas fa-medal"></i>
-          <br>
-          <span
-              class="medal-text">{{ top_of_symbols.2.name }} ({{ top_of_symbols.2.count }})</span>
-          <br>3rd Place
-        </div>
-
-      </div>
-      <br>
-
-      <div>
-        <h5>Your most usable symbol "{{ top_of_symbols.0.name }}" in dreams
-          means:</h5>
-        <p>{{ top_of_symbols.0.description }}</p>
-      </div>
-
-      <div class="card">
-        <div class="card-header">
-          <h5>{{ top_of_symbols|length }} most usable symbols</h5>
-        </div>
-        <div class="card-body">
-          <canvas id="line-chart-symbol"></canvas>
-        </div>
-      </div>
-
+    <!-- Typing dots -->
+    <div class="typing-dots" id="typing-dots">
+      <span></span><span></span><span></span>
     </div>
+
+    <!-- Rendered markdown output -->
+    <div id="summary-content"></div>
+
+    <!-- Error -->
+    <div class="summary-error" id="summary-error"></div>
+
+    <!-- Regenerate button (shown after first generation) -->
+    <button class="btn-regenerate" id="btn-regenerate" style="display:none;" onclick="generateSummary()">
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+        <path d="M13.5 8A5.5 5.5 0 112.5 5" stroke="#3B6D11" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M2.5 2v3h3" stroke="#3B6D11" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Regenerate
+    </button>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script>
-      let ctx_emotions = document.getElementById('line-chart-emotion').getContext('2d');
-      let gradient_emotions = ctx_emotions.createLinearGradient(0, 0, 0, 400);
-      gradient_emotions.addColorStop(0, 'rgba(54, 162, 235, 0.5)');
-      gradient_emotions.addColorStop(1, 'rgba(255, 255, 255, 0)');
+</div>
 
-      let lineChart_emotions = new Chart(ctx_emotions, {
-          type: "line",
-          data: {
-              labels: {{ emotion_labels|safe }},
-              datasets: [{
-                  label: "Num of Emotions",
-                  data: {{ emotion_data|safe }},
-                  backgroundColor: gradient_emotions,
-                  borderColor: 'rgba(15, 179, 194, 100)',
-                  borderWidth: 2,
-                  pointBackgroundColor: 'rgba(15, 179, 194, 100)',
-                  pointBorderColor: '#fff',
-                  pointHoverRadius: 7,
-                  pointHoverBackgroundColor: 'rgba(15, 179, 194, 100)',
-                  fill: true,
-                  tension: 0.1
-              }]
-          },
-          options: {
-              scales: {
-                  y: {
-                      beginAtZero: true,
-                      grid: {
-                          display: true,
-                          color: "rgba(200, 200, 200, 0.3)"
-                      }
-                  },
-                  x: {
-                      grid: {
-                          display: false
-                      }
-                  }
-              },
-              responsive: true,
-              plugins: {
-                  legend: {
-                      display: false
-                  },
-                  tooltip: {
-                      backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                      titleFont: {
-                          size: 16
-                      },
-                      bodyFont: {
-                          size: 14
-                      },
-                      cornerRadius: 5,
-                      caretPadding: 10
-                  }
-              }
+<!-- Marked.js for markdown rendering -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  // ── Chart.js ──────────────────────────────────────────
+  const greenBars = ['#639922','#97C459','#C0DD97','#3B6D11','#b8d97a',
+                     '#4e8016','#d4eaa8','#2a5c08','#e8f5cc','#1a3d05'];
+
+  function makeChart(canvasId, labels, data) {
+    const ctx = document.getElementById(canvasId).getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          data,
+          backgroundColor: greenBars.slice(0, data.length),
+          borderRadius: 6,
+          borderSkipped: false,
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1a2e12',
+            titleFont: { size: 13, family: 'DM Sans' },
+            bodyFont:  { size: 12, family: 'DM Sans' },
+            cornerRadius: 8,
+            padding: 10,
+            callbacks: { label: ctx => '  ' + ctx.raw + ' times' }
           }
+        },
+        scales: {
+          x: {
+            beginAtZero: true,
+            grid: { color: 'rgba(99,153,34,0.08)' },
+            ticks: { font: { size: 11, family: 'DM Sans' }, color: '#6b7c5e' }
+          },
+          y: {
+            grid: { display: false },
+            ticks: { font: { size: 12, family: 'DM Sans' }, color: '#2e3d22' }
+          }
+        }
+      }
+    });
+  }
+
+  makeChart('chart-emotions', {{ emotion_labels|safe }}, {{ emotion_data|safe }});
+  makeChart('chart-symbols',  {{ symbol_labels|safe }},  {{ symbol_data|safe }});
+
+  // ── AI Summary ────────────────────────────────────────
+  // Pass Django context into JS so we can send it to the endpoint
+  const dreamsData = {
+    emotions: [
+      {% for e in top_of_emotions %}
+        { name: "{{ e.name }}", count: {{ e.count }} }{% if not forloop.last %},{% endif %}
+      {% endfor %}
+    ],
+    symbols: [
+      {% for s in top_of_symbols %}
+        { name: "{{ s.name }}", count: {{ s.count }} }{% if not forloop.last %},{% endif %}
+      {% endfor %}
+    ]
+  };
+
+  async function generateSummary() {
+    const btn       = document.getElementById('btn-generate');
+    const btnRegen  = document.getElementById('btn-regenerate');
+    const dots      = document.getElementById('typing-dots');
+    const content   = document.getElementById('summary-content');
+    const errorBox  = document.getElementById('summary-error');
+
+    // Reset state
+    btn.disabled = true;
+    btnRegen.style.display = 'none';
+    content.classList.remove('visible');
+    content.innerHTML = '';
+    errorBox.classList.remove('visible');
+    errorBox.textContent = '';
+    dots.classList.add('active');
+
+    try {
+      const response = await fetch("{% url 'dream:generate_dream_summary' user.pk %}", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken'),
+        },
       });
 
+      const data = await response.json();
 
-      let ctx_symbols = document.getElementById('line-chart-symbol').getContext('2d');
-      let gradient_symbols = ctx_symbols.createLinearGradient(0, 0, 0, 400);
-      gradient_symbols.addColorStop(0, 'rgba(54, 162, 235, 0.5)');
-      gradient_symbols.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      if (!response.ok) {
+        throw new Error(data.error || 'Something went wrong.');
+      }
 
-      let lineChart_symbols = new Chart(ctx_symbols, {
-          type: "line",
-          data: {
-              labels: {{ symbol_labels|safe }},
-              datasets: [{
-                  label: "Num of Symbols",
-                  data: {{ symbol_data|safe }},
-                  backgroundColor: gradient_emotions,
-                  borderColor: 'rgba(15, 179, 194, 100)',
-                  borderWidth: 2,
-                  pointBackgroundColor: 'rgba(15, 179, 194, 100)',
-                  pointBorderColor: '#fff',
-                  pointHoverRadius: 7,
-                  pointHoverBackgroundColor: 'rgba(15, 179, 194, 100)',
-                  fill: true,
-                  tension: 0.1
-              }]
-          },
-          options: {
-              scales: {
-                  y: {
-                      beginAtZero: true,
-                      grid: {
-                          display: true,
-                          color: "rgba(200, 200, 200, 0.3)"
-                      }
-                  },
-                  x: {
-                      grid: {
-                          display: false
-                      }
-                  }
-              },
-              responsive: true,
-              plugins: {
-                  legend: {
-                      display: false
-                  },
-                  tooltip: {
-                      backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                      titleFont: {
-                          size: 16
-                      },
-                      bodyFont: {
-                          size: 14
-                      },
-                      cornerRadius: 5,
-                      caretPadding: 10
-                  }
-              }
-          }
-      });
-  </script>
+      // Render markdown
+      content.innerHTML = marked.parse(data.summary);
+      content.classList.add('visible');
+      btnRegen.style.display = 'inline-flex';
+
+    } catch (err) {
+      errorBox.textContent = '⚠ ' + err.message;
+      errorBox.classList.add('visible');
+    } finally {
+      dots.classList.remove('active');
+      btn.disabled = false;
+    }
+  }
+
+  // Django CSRF helper
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+  }
+</script>
+
 {% endblock %}

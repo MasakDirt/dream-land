@@ -1,87 +1,463 @@
 {% extends "base.html" %}
-
+{% load static %}
 
 {% block content %}
-  <div class="row">
-    <div class="col-sm-12">
-      <div class="card">
-        <div class="card-header">
-          <h5>{{ object|yesno:"Update,Create new" }} dream!</h5>
-        </div>
-        <div class="card-body">
-          <form method="post" action="" novalidate="">
-            {% csrf_token %}
-            <div class="row">
-              <div class="col-md-6">
-                <div class="form-group">
-                  <p>
-                    <label class="form-label" for="id_title">Title:</label>
-                    <input class="form-control" type="text" name="title"
-                           maxlength="125" required="" value="
-                        {% if form.title.value %}{{ form.title.value }} {% endif %}"
-                           id="id_title">
-                  </p>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="form-group">
-                  <p>
-                    <label class="form-label"
-                           for="id_description">Description:</label>
-                    <textarea class="form-control" name="description" cols="40"
-                              rows="10"
-                              id="id_description">
-                      {% if form.description.value %}
-                        {{ form.description.value }}
-                      {% endif %}
-                    </textarea>
-                  </p>
-                </div>
-              </div>
 
-              <div class="col-md-6">
-                <div class="form-group">
-                  <p>
-                    <label class="form-label"
-                           for="id_emotions">Emotions:</label>
-                    <select class="form-control" name="emotions" required=""
-                            id="id_emotions" multiple=""
-                            style="height: 200px;">
-                      {% for emotion in emotions %}
-                        <option
-                            {% if dream.emotion_names and emotion.name in dream.emotion_names %}
-                              selected {% endif %}
-                              value="{{ emotion.id }}">{{ emotion.name }}</option>
-                      {% endfor %}
-                    </select>
-                    <small class="test-muted">Press 'Ctrl' and choose one or several emotions</small>
-                  </p>
-                </div>
-              </div>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap');
 
-              <div class="col-md-6">
-                <div class="form-group">
-                  <p>
-                    <label class="form-label" for="id_symbols">Symbols:</label>
-                    <select class="form-control" name="symbols" required=""
-                            id="id_symbols" multiple="" style="height: 200px;">
-                      {% for symbol in symbols %}
-                        <option
-                            {% if dream.symbol_names and symbol.name in dream.symbol_names %}
-                              selected {% endif %}
-                              value="{{ symbol.id }}">{{ symbol.name }}</option>
-                      {% endfor %}
-                    </select>
-                    <small class="test-muted">Press 'Ctrl' and choose one or several symbols</small>
-                  </p>
-                </div>
-              </div>
+  .dream-form-page {
+    font-family: 'DM Sans', sans-serif;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1rem 4rem;
+  }
 
-            </div>
-            <input type="submit" class="btn btn-success" value="Submit">
-          </form>
+  /* ── Page header ── */
+  .form-header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  .form-header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px;
+    font-weight: 400;
+    color: #1a2e12;
+    margin: 0 0 8px;
+  }
+
+  .form-header p {
+    font-size: 16px;
+    color: #5a7048;
+    margin: 0;
+  }
+
+  /* ── Form container ── */
+  .dream-form-container {
+    background: #fff;
+    border: 0.5px solid #e0e8d4;
+    border-radius: 16px;
+    padding: 32px;
+    transition: box-shadow 0.15s, border-color 0.15s;
+  }
+
+  .dream-form-container:hover {
+    box-shadow: 0 8px 24px rgba(26,46,18,0.1);
+    border-color: #c0dd97;
+  }
+
+  /* ── Form sections ── */
+  .form-section {
+    margin-bottom: 32px;
+  }
+
+  .form-section:last-child {
+    margin-bottom: 0;
+  }
+
+  .section-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    font-weight: 400;
+    color: #1a2e12;
+    margin: 0 0 20px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e0e8d4;
+  }
+
+  /* ── Form groups ── */
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .form-group.full-width {
+    grid-column: 1 / -1;
+  }
+
+  .form-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a2e12;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .form-label::after {
+    content: '*';
+    color: #c05040;
+    font-size: 16px;
+  }
+
+  .form-label.optional::after {
+    content: '';
+  }
+
+  /* ── Form inputs ── */
+  .form-input {
+    padding: 12px 16px;
+    border: 0.5px solid #e0e8d4;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: #1a2e12;
+    background: #fff;
+    transition: border-color 0.13s, box-shadow 0.13s;
+    outline: none;
+  }
+
+  .form-input:focus {
+    border-color: #97C459;
+    box-shadow: 0 0 0 3px rgba(151, 196, 89, 0.1);
+  }
+
+  .form-input::placeholder {
+    color: #a8bb98;
+  }
+
+  .form-textarea {
+    min-height: 120px;
+    resize: vertical;
+    line-height: 1.5;
+  }
+
+  /* ── Select fields ── */
+  .form-select {
+    padding: 12px 16px;
+    border: 0.5px solid #e0e8d4;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: #1a2e12;
+    background: #fff;
+    transition: border-color 0.13s, box-shadow 0.13s;
+    outline: none;
+    min-height: 200px;
+  }
+
+  .form-select:focus {
+    border-color: #97C459;
+    box-shadow: 0 0 0 3px rgba(151, 196, 89, 0.1);
+  }
+
+  .form-select option {
+    padding: 8px;
+  }
+
+  /* ── Form help ── */
+  .form-help {
+    font-size: 12px;
+    color: #8a9e7a;
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .form-help i {
+    font-size: 11px;
+  }
+
+  /* ── Selected items display ── */
+  .selected-items {
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: #f7faf2;
+    border-radius: 6px;
+    border: 0.5px solid #e0e8d4;
+  }
+
+  .selected-items:empty {
+    display: none;
+  }
+
+  .selected-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    margin: 2px 4px 2px 0;
+    background: #eaf3de;
+    color: #3B6D11;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  /* ── Form actions ── */
+  .form-actions {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    margin-top: 40px;
+    padding-top: 24px;
+    border-top: 0.5px solid #e0e8d4;
+  }
+
+  .form-submit {
+    padding: 12px 32px;
+    background: #3B6D11;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.13s, transform 0.13s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .form-submit:hover {
+    background: #2e5509;
+    transform: translateY(-1px);
+  }
+
+  .form-submit:active {
+    transform: translateY(0);
+  }
+
+  .form-cancel {
+    padding: 12px 32px;
+    background: #f7faf2;
+    color: #5a7048;
+    border: 0.5px solid #e0e8d4;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.13s, border-color 0.13s;
+  }
+
+  .form-cancel:hover {
+    background: #f1f7ea;
+    border-color: #c0dd97;
+    color: #3B6D11;
+  }
+
+  /* ── Error states ── */
+  .form-error {
+    border-color: #c05040 !important;
+    box-shadow: 0 0 0 3px rgba(192, 80, 64, 0.1) !important;
+  }
+
+  .error-message {
+    font-size: 12px;
+    color: #c05040;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .error-message i {
+    font-size: 11px;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .dream-form-page {
+      padding: 1rem 0.5rem 2rem;
+    }
+
+    .dream-form-container {
+      padding: 20px;
+    }
+
+    .form-row {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    .form-header h1 {
+      font-size: 28px;
+    }
+
+    .form-actions {
+      flex-direction: column;
+    }
+
+    .form-submit, .form-cancel {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>
+
+<div class="dream-form-page">
+  <div class="form-header">
+    <h1>{{ object|yesno:"Update Dream,Create New Dream" }}</h1>
+    <p>Share your dream experience with the community</p>
+  </div>
+
+  <div class="dream-form-container">
+    <form method="post" action="" novalidate="">
+      {% csrf_token %}
+
+      <!-- Basic Information -->
+      <div class="form-section">
+        <h2 class="section-title">Basic Information</h2>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="id_title">
+              <i class="feather icon-type"></i>
+              Dream Title
+            </label>
+            <input class="form-input" type="text" name="title" maxlength="125" required=""
+                   value="{% if form.title.value %}{{ form.title.value }}{% endif %}" id="id_title"
+                   placeholder="Give your dream a meaningful title...">
+            {% if form.title.errors %}
+              <div class="error-message">
+                <i class="feather icon-alert-circle"></i>
+                {{ form.title.errors.0 }}
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="form-group">
+            <label class="form-label optional" for="id_description">
+              <i class="feather icon-file-text"></i>
+              Dream Description
+            </label>
+            <textarea class="form-input form-textarea" name="description" cols="40" rows="6"
+                      id="id_description" placeholder="Describe your dream in detail...">{{ form.description.value|default:'' }}</textarea>
+            {% if form.description.errors %}
+              <div class="error-message">
+                <i class="feather icon-alert-circle"></i>
+                {{ form.description.errors.0 }}
+              </div>
+            {% endif %}
+          </div>
         </div>
       </div>
-    </div>
+
+      <!-- Emotions & Symbols -->
+      <div class="form-section">
+        <h2 class="section-title">Emotions & Symbols</h2>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="id_emotions">
+              <i class="feather icon-heart"></i>
+              Emotions
+            </label>
+            <select class="form-select" name="emotions" required="" id="id_emotions" multiple="">
+              {% for emotion in emotions %}
+                <option {% if dream.emotion_names and emotion.name in dream.emotion_names %}selected{% endif %}
+                        value="{{ emotion.id }}">{{ emotion.name }}</option>
+              {% endfor %}
+            </select>
+            <div class="form-help">
+              <i class="feather icon-info"></i>
+              Press 'Ctrl' (or 'Cmd' on Mac) and click to select multiple emotions
+            </div>
+            {% if form.emotions.errors %}
+              <div class="error-message">
+                <i class="feather icon-alert-circle"></i>
+                {{ form.emotions.errors.0 }}
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="id_symbols">
+              <i class="feather icon-star"></i>
+              Symbols
+            </label>
+            <select class="form-select" name="symbols" required="" id="id_symbols" multiple="">
+              {% for symbol in symbols %}
+                <option {% if dream.symbol_names and symbol.name in dream.symbol_names %}selected{% endif %}
+                        value="{{ symbol.id }}">{{ symbol.name }}</option>
+              {% endfor %}
+            </select>
+            <div class="form-help">
+              <i class="feather icon-info"></i>
+              Press 'Ctrl' (or 'Cmd' on Mac) and click to select multiple symbols
+            </div>
+            {% if form.symbols.errors %}
+              <div class="error-message">
+                <i class="feather icon-alert-circle"></i>
+                {{ form.symbols.errors.0 }}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button type="submit" class="form-submit">
+          <i class="feather icon-save"></i>
+          {{ object|yesno:"Update Dream,Create Dream" }}
+        </button>
+        <a href="{% url 'dream:dream-list' %}" class="form-cancel">
+          <i class="feather icon-x"></i>
+          Cancel
+        </a>
+      </div>
+    </form>
   </div>
+</div>
+
+<script>
+  // Update selected items display for multi-selects
+  function updateSelectedDisplay(selectId, displayId) {
+    const select = document.getElementById(selectId);
+    const display = document.getElementById(displayId);
+
+    function update() {
+      const selected = Array.from(select.selectedOptions);
+      display.innerHTML = selected.map(option =>
+        `<span class="selected-item">${option.text}</span>`
+      ).join('');
+    }
+
+    select.addEventListener('change', update);
+    update(); // Initial update
+  }
+
+  // Add visual feedback for form validation
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const inputs = form.querySelectorAll('input, textarea, select');
+
+    inputs.forEach(input => {
+      input.addEventListener('blur', function() {
+        if (this.checkValidity()) {
+          this.classList.remove('form-error');
+        } else {
+          this.classList.add('form-error');
+        }
+      });
+    });
+
+    // Form submission feedback
+    form.addEventListener('submit', function(e) {
+      const submitBtn = form.querySelector('.form-submit');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<i class="feather icon-loader"></i> Saving...';
+      submitBtn.disabled = true;
+
+      // Re-enable after 3 seconds (in case of error)
+      setTimeout(() => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+      }, 3000);
+    });
+  });
+</script>
+
 {% endblock %}

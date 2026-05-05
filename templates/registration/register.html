@@ -1,142 +1,412 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-
-  <title>Dream Land</title>
-
-  <meta charset="utf-8">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-  <meta name="description" content=""/>
-  <meta name="keywords" content="">
-
-  {% load static %}
-  <link rel="stylesheet"
-        href="{% static 'assets/css/style.css' %}">
-  <link rel="icon" href="{% static 'images/favicon.png' %}"
-        type="image/icon type">
-</head>
-
-<body>
-
-{% include 'includes/sidebar.html' %}
-{% include 'includes/navigation.html' %}
-
-<div class="pcoded-main-container">
-  <div class="auth-wrapper">
-    <div class="auth-content">
-      <div class="card">
-        <div class="row align-items-center text-center">
-          <div class="col-md-12">
-            <div class="card-body">
-              {% load static %}
-              <img src="{% static 'images/logo-blue.png' %}" alt=""
-                   class="img-fluid mb-4">
-              <h4 class="mb-3 f-w-400">Sign up</h4>
-
-              <form method="post" action="">
-                {% csrf_token %}
-                {% for error in form.username.errors %}
-                  <div class="text-danger">{{ error }}</div>
-                {% endfor %}
-                <div class="input-group mb-3">
-                <span class="input-group-text"><i
-                    class="feather icon-user"></i></span>
-                  <input type="text" class="form-control" name="username"
-                         maxlength="150" autocapitalize="none"
-                         autocomplete="username" autofocus="" required=""
-                         aria-describedby="id_username_helptext"
-                         placeholder="Username">
-                </div>
-
-                {% for error in form.email.errors %}
-                  <div class="text-danger">{{ error }}</div>
-                {% endfor %}
-                <div class="input-group mb-3">
-                <span class="input-group-text"><i
-                    class="feather icon-mail"></i></span>
-                  <input type="email" class="form-control"
-                         placeholder="Email address"
-                         name="email" maxlength="254">
-                </div>
-
-                {% for error in form.first_name.errors %}
-                  <div class="text-danger">{{ error }}</div>
-                {% endfor %}
-                <div class="input-group mb-3">
-                <span class="input-group-text"><i
-                    class="feather icon-eye"></i></span>
-                  <input type="text" name="first_name" maxlength="150"
-                         placeholder="First name" class="form-control">
-                </div>
-
-                {% for error in form.last_name.errors %}
-                  <div class="text-danger">{{ error }}</div>
-                {% endfor %}
-                <div class="input-group mb-3">
-                <span class="input-group-text"><i
-                    class="fas fa-fingerprint"></i></span>
-                  <input type="text" name="last_name" maxlength="150"
-                         placeholder="Last name" class="form-control">
-                </div>
-
-                {% for error in form.birth_date.errors %}
-                  <div class="text-danger">{{ error }}</div>
-                {% endfor %}
-                <div class="input-group mb-3">
-                <span class="input-group-text"><i
-                    class="feather icon-calendar"> Birth</i></span>
-                  <input type="date" name="birth_date"
-                         class="form-control" id="birth_date">
-                </div>
-
-
-                {% for error in form.password1.errors %}
-                  <div class="text-danger">{{ error }}</div>
-                {% endfor %}
-                <div class="input-group mb-4">
-                <span class="input-group-text"><i
-                    class="feather icon-lock"></i></span>
-                  <input type="password" name="password1"
-                         autocomplete="new-password"
-                         aria-describedby="id_password1_helptext"
-                         aria-autocomplete="list" class="form-control"
-                         placeholder="Password">
-                </div>
-
-                {% for error in form.password2.errors %}
-                  <div class="text-danger">{{ error }}</div>
-                {% endfor %}
-                <div class="input-group mb-4">
-                <span class="input-group-text"><i
-                    class="feather icon-lock"></i></span>
-                  <input type="password" name="password2"
-                         autocomplete="new-password"
-                         class="form-control"
-                         placeholder="Repeat your password">
-                </div>
-
-                <input type="hidden"
-                       name="usable_password"
-                       value="true"
-                       class="radiolist inline"
-                       id="id_usable_password_0">
-                <button type="submit"
-                        class="btn btn-primary btn-block mt-2 mb-4">
-                  Sign up
-                </button>
-                <p class="mb-2">Already have an account? <a
-                    href="{% url 'login' %}" class="f-w-400">Signin</a></p>
-              </form>
-
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap');
+  .signup-page {
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #f7faf2 0%, #eaf3de 100%);
+    padding: 2rem 1rem;
+  }
+  .signup-container {
+    max-width: 480px;
+    width: 100%;
+  }
+  /* ── Signup card ── */
+  .signup-card {
+    background: #fff;
+    border: 0.5px solid #e0e8d4;
+    border-radius: 20px;
+    padding: 40px 32px;
+    box-shadow: 0 8px 32px rgba(26,46,18,0.1);
+    transition: box-shadow 0.2s, border-color 0.2s;
+  }
+  .signup-card:hover {
+    box-shadow: 0 12px 40px rgba(26,46,18,0.15);
+    border-color: #c0dd97;
+  }
+  /* ── Logo section ── */
+  .logo-section {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .logo {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    background: linear-gradient(135deg, #3B6D11, #97C459);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(59, 109, 17, 0.2);
+  }
+  .logo i {
+    font-size: 32px;
+    color: #fff;
+  }
+  .welcome-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    font-weight: 400;
+    color: #1a2e12;
+    margin: 0 0 8px;
+  }
+  .welcome-subtitle {
+    font-size: 16px;
+    color: #5a7048;
+    margin: 0;
+  }
+  /* ── Form section ── */
+  .signup-form {
+    margin-bottom: 24px;
+  }
+  .form-group {
+    margin-bottom: 20px;
+  }
+  .form-group:last-child {
+    margin-bottom: 0;
+  }
+  .input-group {
+    position: relative;
+  }
+  .input-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #97C459;
+    font-size: 18px;
+    z-index: 2;
+  }
+  .form-input {
+    width: 100%;
+    padding: 14px 16px 14px 48px;
+    border: 0.5px solid #e0e8d4;
+    border-radius: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    color: #1a2e12;
+    background: #fff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+  }
+  .form-input:focus {
+    border-color: #97C459;
+    box-shadow: 0 0 0 3px rgba(151, 196, 89, 0.1);
+  }
+  .form-input::placeholder {
+    color: #a8bb98;
+  }
+  /* ── Error messages ── */
+  .error-message {
+    background: #fdf2f2;
+    color: #c05040;
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-top: 8px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .error-message i {
+    font-size: 12px;
+  }
+  .general-error {
+    background: #fdf2f2;
+    color: #c05040;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+  }
+  /* ── Submit button ── */
+  .signup-submit {
+    width: 100%;
+    padding: 14px 24px;
+    background: linear-gradient(135deg, #3B6D11, #97C459);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+  .signup-submit:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(59, 109, 17, 0.3);
+  }
+  .signup-submit:active {
+    transform: translateY(0);
+  }
+  .signup-submit:disabled {
+    background: #8a9e7a;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+  /* ── Links ── */
+  .auth-links {
+    text-align: center;
+  }
+  .auth-text {
+    font-size: 14px;
+    color: #5a7048;
+    margin: 0 0 8px;
+  }
+  .auth-link {
+    color: #3B6D11;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s;
+  }
+  .auth-link:hover {
+    color: #2e5509;
+    text-decoration: underline;
+  }
+  /* ── Loading state ── */
+  .loading-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid #fff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  /* ── Two-column layout for mobile ── */
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .form-row .form-group {
+    margin-bottom: 0;
+  }
+  /* ── Responsive ── */
+  @media (max-width: 480px) {
+    .signup-page {
+      padding: 1rem;
+    }
+    .signup-card {
+      padding: 32px 24px;
+    }
+    .welcome-title {
+      font-size: 24px;
+    }
+    .logo {
+      width: 70px;
+      height: 70px;
+    }
+    .logo i {
+      font-size: 28px;
+    }
+    .form-row {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+<div class="signup-page">
+  <div class="signup-container">
+    <div class="signup-card">
+      <!-- Logo and Welcome -->
+      <div class="logo-section">
+        <div class="logo">
+          <i class="feather icon-user-plus"></i>
+        </div>
+        <h1 class="welcome-title">Join Us</h1>
+        <p class="welcome-subtitle">Start your dream journey today</p>
+      </div>
+      <!-- Signup Form -->
+      <form method="post" action="" novalidate class="signup-form">
+        {% csrf_token %}
+        <!-- General form errors -->
+        {% if form.non_field_errors %}
+          <div class="general-error">
+            {% for error in form.non_field_errors %}
+              <div>{{ error }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+        <!-- Username field -->
+        <div class="form-group">
+          <div class="input-group">
+            <i class="feather icon-user input-icon"></i>
+            <input type="text" name="username" autofocus=""
+                   autocapitalize="none" autocomplete="username"
+                   maxlength="150" required=""
+                   class="form-input" placeholder="Username"
+                   value="{% if form.username.value %}{{ form.username.value }}{% endif %}">
+          </div>
+          {% if form.username.errors %}
+            <div class="error-message">
+              <i class="feather icon-alert-circle"></i>
+              {% for error in form.username.errors %}
+                <span>{{ error }}</span>
+              {% endfor %}
             </div>
+          {% endif %}
+        </div>
+        <!-- Email field -->
+        <div class="form-group">
+          <div class="input-group">
+            <i class="feather icon-mail input-icon"></i>
+            <input type="email" name="email"
+                   class="form-input" placeholder="Email address"
+                   value="{% if form.email.value %}{{ form.email.value }}{% endif %}">
+          </div>
+          {% if form.email.errors %}
+            <div class="error-message">
+              <i class="feather icon-alert-circle"></i>
+              {% for error in form.email.errors %}
+                <span>{{ error }}</span>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+        <!-- First and Last Name -->
+        <div class="form-row">
+          <div class="form-group">
+            <div class="input-group">
+              <i class="feather icon-user input-icon"></i>
+              <input type="text" name="first_name" maxlength="150"
+                     class="form-input" placeholder="First name"
+                     value="{% if form.first_name.value %}{{ form.first_name.value }}{% endif %}">
+            </div>
+            {% if form.first_name.errors %}
+              <div class="error-message">
+                <i class="feather icon-alert-circle"></i>
+                {% for error in form.first_name.errors %}
+                  <span>{{ error }}</span>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+          <div class="form-group">
+            <div class="input-group">
+              <i class="feather icon-user input-icon"></i>
+              <input type="text" name="last_name" maxlength="150"
+                     class="form-input" placeholder="Last name"
+                     value="{% if form.last_name.value %}{{ form.last_name.value }}{% endif %}">
+            </div>
+            {% if form.last_name.errors %}
+              <div class="error-message">
+                <i class="feather icon-alert-circle"></i>
+                {% for error in form.last_name.errors %}
+                  <span>{{ error }}</span>
+                {% endfor %}
+              </div>
+            {% endif %}
           </div>
         </div>
+        <!-- Birth Date field -->
+        <div class="form-group">
+          <div class="input-group">
+            <i class="feather icon-calendar input-icon"></i>
+            <input type="date" name="birth_date"
+                   class="form-input" id="birth_date"
+                   value="{% if form.birth_date.value %}{{ form.birth_date.value }}{% endif %}">
+          </div>
+          {% if form.birth_date.errors %}
+            <div class="error-message">
+              <i class="feather icon-alert-circle"></i>
+              {% for error in form.birth_date.errors %}
+                <span>{{ error }}</span>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+        <!-- Password field -->
+        <div class="form-group">
+          <div class="input-group">
+            <i class="feather icon-lock input-icon"></i>
+            <input type="password" name="password1"
+                   autocomplete="new-password"
+                   class="form-input" placeholder="Password">
+          </div>
+          {% if form.password1.errors %}
+            <div class="error-message">
+              <i class="feather icon-alert-circle"></i>
+              {% for error in form.password1.errors %}
+                <span>{{ error }}</span>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+        <!-- Confirm Password field -->
+        <div class="form-group">
+          <div class="input-group">
+            <i class="feather icon-lock input-icon"></i>
+            <input type="password" name="password2"
+                   autocomplete="new-password"
+                   class="form-input" placeholder="Confirm password">
+          </div>
+          {% if form.password2.errors %}
+            <div class="error-message">
+              <i class="feather icon-alert-circle"></i>
+              {% for error in form.password2.errors %}
+                <span>{{ error }}</span>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+        <!-- Hidden field for usable password -->
+        <input type="hidden"
+               name="usable_password"
+               value="true"
+               class="radiolist inline"
+               id="id_usable_password_0">
+        <!-- Submit button -->
+        <button type="submit" class="signup-submit" id="signup-btn">
+          <i class="feather icon-check-circle"></i>
+          <span>Create Account</span>
+        </button>
+      </form>
+      <!-- Auth links -->
+      <div class="auth-links">
+        <p class="auth-text">
+          Already have an account?
+          <a href="{% url 'login' %}" class="auth-link">Sign in here</a>
+        </p>
       </div>
     </div>
   </div>
 </div>
-</body>
-</html>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const signupBtn = document.getElementById('signup-btn');
+    const form = document.querySelector('form');
+    // Form submission feedback
+    form.addEventListener('submit', function(e) {
+      signupBtn.innerHTML = \`
+        <div class="loading-spinner"></div>
+        <span>Creating Account...</span>
+      \`;
+      signupBtn.disabled = true;
+      // Re-enable after 5 seconds (in case of error)
+      setTimeout(() => {
+        signupBtn.innerHTML = \`
+          <i class="feather icon-check-circle"></i>
+          <span>Create Account</span>
+        \`;
+        signupBtn.disabled = false;
+      }, 5000);
+    });
+  });
+</script>
+{% endblock %}

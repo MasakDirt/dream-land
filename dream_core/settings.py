@@ -13,6 +13,10 @@ import os
 import dj_database_url
 from pathlib import Path
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -25,7 +29,7 @@ SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = "RENDER" not in os.environ
 
-ALLOWED_HOSTS = ["127.0.0.1", "dream-land-4k1a.onrender.com"]
+ALLOWED_HOSTS = ["127.0.0.1", "dream-land-4k1a.onrender.com", "localhost"]
 
 # Application definition
 
@@ -91,7 +95,6 @@ DATABASES = {
 db_from_env = dj_database_url.config(conn_max_age=500)
 DATABASES["default"].update(db_from_env)
 
-
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
@@ -149,15 +152,21 @@ AWS_S3_OBJECT_PARAMETERS = {
     'CacheControl': 'max-age=86400',
 }
 
-DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 
 # USER MODEL
 AUTH_USER_MODEL = "users.User"
 
 # MEDIA
 
-MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_URL = "/media/"
 
 # LOGIN REDIRECT
 
 LOGIN_REDIRECT_URL = "/"
+
+# AI
+SYSTEM_AI_PROVIDER_BASE_URL = os.environ.get("SYSTEM_AI_PROVIDER_BASE_URL", "")
+SYSTEM_AI_PROVIDER_API_KEY = os.environ.get("SYSTEM_AI_PROVIDER_API_KEY", "")
+SYSTEM_AI_PROVIDER_MODEL = os.environ.get("SYSTEM_AI_PROVIDER_MODEL", "")
