@@ -76,3 +76,8 @@ Your goal:
 
 Help the user explore their dreams, understand patterns, and engage with their dream history and activity on the platform in a comfortable and natural way, while strictly staying within the dream-related domain.
 """
+
+
+CHAT_TITLE_PROMPT = """Give a short (3-5 words) title for a dream journal chat 
+that starts with: '{user_message}'.
+Reply with ONLY the title, no quotes, no punctuation at the end."""

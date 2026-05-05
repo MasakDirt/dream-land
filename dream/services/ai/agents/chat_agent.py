@@ -1,7 +1,7 @@
 import logging
 
 from dream.services.ai.agents.base_agent import BaseAgent
-from dream.services.ai.prompts.chat_prompt import CHAT_SYSTEM_PROMPT
+from dream.services.ai.prompts.chat_prompt import CHAT_SYSTEM_PROMPT, CHAT_TITLE_PROMPT
 from dream.services.ai.tools.tools_handler import get_tools_descriptions
 
 logger = logging.getLogger("dreams")
@@ -50,11 +50,7 @@ class DreamsChatAgent(BaseAgent):
             title = self.create_completion(
                 messages=[{
                     "role": "user",
-                    "content": (
-                        f"Give a short (3-5 words) title for a dream journal chat "
-                        f"that starts with: '{user_message[:200]}'. "
-                        f"Reply with ONLY the title, no quotes, no punctuation at the end."
-                    )
+                    "content": CHAT_TITLE_PROMPT.format(user_message=user_message),
                 }],
             ).content
 
