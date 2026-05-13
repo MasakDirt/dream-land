@@ -59,7 +59,7 @@ class PublicUserTests(TestCase):
         email = "ttest@mail.co"
         first_name = "Firs test"
         last_name = "Lastname"
-        birth = datetime.date(2009, 3, 5)
+        birth = datetime.date.today() - datetime.timedelta(days=10 * 365)
         password = "hashed_PASS2456"
         response = self.client.post(
             self.user_create_url,

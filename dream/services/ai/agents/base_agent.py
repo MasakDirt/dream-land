@@ -38,7 +38,7 @@ class BaseAgent:
                 )
             except ToolCallException as e:
                 logger.error(f"Failed to call tool: {e}")
-                tool_result = {"error": f"Tool '{tool_call.function.name}' raised an error"}
+                tool_result = {"error": f"Tool '{tool_call.function.name}' raised an error, error: {e}"}
 
             try:
                 encoded_result = json.dumps(tool_result)

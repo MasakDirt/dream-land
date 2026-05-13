@@ -62,12 +62,12 @@ def get_tools_descriptions(tool_names: list[str]) -> list[dict[str, Any]]:
 def call_tool(tool_name: str, tool_arguments: str) -> dict[str, Any]:
     """Call tool with given arguments"""
     try:
-        tool_arguments = json.loads(tool_arguments)
+        tool_arguments_dict = json.loads(tool_arguments) if tool_arguments else {}
         params = _get_tool_params(tool_name)
         if params is None:
             return {}
 
-        params = params(**tool_arguments)
+        params = params(**tool_arguments_dict)
         tool = _get_tool(tool_name)
         if tool is None:
             return {}
