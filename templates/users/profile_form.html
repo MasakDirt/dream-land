@@ -1,70 +1,434 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-
-  <title>Dream Land</title>
-
-  <meta charset="utf-8">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-  <meta name="description" content=""/>
-  <meta name="keywords" content="">
-
-  {% load static %}
-  <link rel="stylesheet"
-        href="{% static 'assets/css/style.css' %}">
-  <link rel="icon" href="{% static 'images/favicon.png' %}"
-        type="image/icon type">
-</head>
-
-<body>
-
-{% include 'includes/sidebar.html' %}
-{% include 'includes/navigation.html' %}
-
-<div class="pcoded-main-container">
-  <div class="auth-wrapper">
-    <div class="auth-content">
-      <div class="card">
-        <div class="row align-items-center text-center">
-          <div class="col-md-12">
-            <div class="card-body">
-              {% load static %}
-              <img src="{% static 'images/logo-blue.png' %}" alt=""
-                   class="img-fluid mb-4">
-              <h4 class="mb-3 f-w-400">Update profile</h4>
-
-              <form method="post" action="" novalidate
-                    enctype="multipart/form-data">
-                {% csrf_token %}
-                {{ form.media }}
-                <div class="form-group mb-3">
-                  <label for="{{ form.bio.id_for_label }}"
-                         class="form-label">Bio: </label>
-                  <textarea class="form-control" name="bio" cols="40" rows="10" id="id_bio">{% if form.bio.value %}{{ form.bio.value }}{% endif %}</textarea>
-                  <div
-                      class="form-text text-danger">{{ form.bio.errors }}</div>
-                </div>
-                <div class="input-group mb-4">
-                  <label for="{{ form.profile_picture.id_for_label }}"
-                         class="form-label">Profile Picture:</label>
-                  <input type="file" name="profile_picture" accept="image/*" id="id_profile_picture">
-                  <div
-                      class="form-text text-danger">{{ form.profile_picture.errors }}</div>
-                </div>
-                <button type="submit"
-                        class="btn btn-block btn-primary mt-2 mb-4">
-                  Update
-                </button>
-              </form>
-            </div>
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap');
+  .profile-form-page {
+    font-family: 'DM Sans', sans-serif;
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 2rem 1rem 4rem;
+  }
+  .form-header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .form-header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px;
+    font-weight: 400;
+    color: #1a2e12;
+    margin: 0 0 8px;
+  }
+  .form-header p {
+    font-size: 16px;
+    color: #5a7048;
+    margin: 0;
+  }
+  .profile-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 32px;
+  }
+  .current-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #e0e8d4;
+    margin-bottom: 16px;
+    transition: border-color 0.13s;
+  }
+  .current-avatar:hover {
+    border-color: #97C459;
+  }
+  .preview-label {
+    font-size: 14px;
+    color: #8a9e7a;
+  }
+  .profile-form-container {
+    background: #fff;
+    border: 0.5px solid #e0e8d4;
+    border-radius: 16px;
+    padding: 32px;
+    transition: box-shadow 0.15s, border-color 0.15s;
+  }
+  .profile-form-container:hover {
+    box-shadow: 0 8px 24px rgba(26,46,18,0.1);
+    border-color: #c0dd97;
+  }
+  .form-group {
+    margin-bottom: 24px;
+  }
+  .form-group:last-child {
+    margin-bottom: 0;
+  }
+  .form-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a2e12;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .form-label i {
+    color: #97C459;
+  }
+  .form-textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 0.5px solid #e0e8d4;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: #1a2e12;
+    background: #fff;
+    transition: border-color 0.13s, box-shadow 0.13s;
+    outline: none;
+    resize: vertical;
+    min-height: 120px;
+    line-height: 1.5;
+  }
+  .form-textarea:focus {
+    border-color: #97C459;
+    box-shadow: 0 0 0 3px rgba(151, 196, 89, 0.1);
+  }
+  .form-textarea::placeholder {
+    color: #a8bb98;
+  }
+  .file-upload-container {
+    position: relative;
+  }
+  .file-upload-input {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+  }
+  .file-upload-button {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    background: #f7faf2;
+    border: 2px dashed #c0dd97;
+    border-radius: 8px;
+    color: #5a7048;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.13s;
+    width: 100%;
+    justify-content: center;
+  }
+  .file-upload-button:hover {
+    background: #f1f7ea;
+    border-color: #97C459;
+    color: #3B6D11;
+  }
+  .file-upload-button.dragover {
+    background: #eaf3de;
+    border-color: #3B6D11;
+    color: #2e5509;
+  }
+  .selected-file {
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: #eaf3de;
+    color: #3B6D11;
+    border-radius: 6px;
+    font-size: 12px;
+    display: none;
+  }
+  .char-counter {
+    font-size: 12px;
+    color: #8a9e7a;
+    text-align: right;
+    margin-top: 4px;
+  }
+  .char-counter.warning {
+    color: #c05040;
+  }
+  .form-actions {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    margin-top: 40px;
+    padding-top: 24px;
+    border-top: 0.5px solid #e0e8d4;
+  }
+  .form-submit {
+    padding: 12px 32px;
+    background: #3B6D11;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.13s, transform 0.13s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .form-submit:hover {
+    background: #2e5509;
+    transform: translateY(-1px);
+  }
+  .form-submit:active {
+    transform: translateY(0);
+  }
+  .form-submit:disabled {
+    background: #8a9e7a;
+    cursor: not-allowed;
+    transform: none;
+  }
+  .form-cancel {
+    padding: 12px 32px;
+    background: #f7faf2;
+    color: #5a7048;
+    border: 0.5px solid #e0e8d4;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.13s, border-color 0.13s;
+  }
+  .form-cancel:hover {
+    background: #f1f7ea;
+    border-color: #c0dd97;
+    color: #3B6D11;
+  }
+  .error-message {
+    font-size: 12px;
+    color: #c05040;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .error-message i {
+    font-size: 11px;
+  }
+  .form-error {
+    border-color: #c05040 !important;
+    box-shadow: 0 0 0 3px rgba(192, 80, 64, 0.1) !important;
+  }
+  .success-message {
+    background: #eaf3de;
+    color: #3B6D11;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .success-message i {
+    font-size: 16px;
+  }
+  @media (max-width: 768px) {
+    .profile-form-page {
+      padding: 1rem 0.5rem 2rem;
+    }
+    .profile-form-container {
+      padding: 20px;
+    }
+    .form-header h1 {
+      font-size: 28px;
+    }
+    .current-avatar {
+      width: 100px;
+      height: 100px;
+    }
+    .form-actions {
+      flex-direction: column;
+    }
+    .form-submit, .form-cancel {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>
+<div class="profile-form-page">
+  <div class="form-header">
+    <h1>Update Your Profile</h1>
+    <p>Personalize your Dream Land experience</p>
+  </div>
+  <div class="profile-preview">
+    <img class="current-avatar"
+         src="{% if user.profile.profile_picture %}{{ user.profile.profile_picture.url }}{% else %}{% static 'images/user-image.png' %}{% endif %}"
+         alt="Current profile picture">
+    <div class="preview-label">Current Profile Picture</div>
+  </div>
+  <div class="profile-form-container">
+    {% if messages %}
+      {% for message in messages %}
+        {% if message.tags == 'success' %}
+          <div class="success-message">
+            <i class="feather icon-check-circle"></i>
+            {{ message }}
+          </div>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+    <form method="post" action="" novalidate enctype="multipart/form-data">
+      {% csrf_token %}
+      {{ form.media }}
+      <div class="form-group">
+        <label class="form-label" for="id_bio">
+          <i class="feather icon-user"></i>
+          About You (Bio)
+        </label>
+        <textarea class="form-textarea" name="bio" cols="40" rows="6" id="id_bio"
+                  placeholder="Tell us about yourself, your interests, or anything you'd like to share with the community..."
+                  maxlength="500">{{ form.bio.value|default:'' }}</textarea>
+        <div class="char-counter" id="bio-counter">0 / 500 characters</div>
+        {% if form.bio.errors %}
+          <div class="error-message">
+            <i class="feather icon-alert-circle"></i>
+            {{ form.bio.errors.0 }}
+          </div>
+        {% endif %}
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="id_profile_picture">
+          <i class="feather icon-camera"></i>
+          Profile Picture
+        </label>
+        <div class="file-upload-container">
+          <input type="file" name="profile_picture" accept="image/*" id="id_profile_picture" class="file-upload-input">
+          <div class="file-upload-button" id="file-upload-button">
+            <i class="feather icon-upload" class="file-upload-icon"></i>
+            <span id="upload-text">Choose a new profile picture</span>
           </div>
         </div>
+        <div class="selected-file" id="selected-file"></div>
+        {% if form.profile_picture.errors %}
+          <div class="error-message">
+            <i class="feather icon-alert-circle"></i>
+            {{ form.profile_picture.errors.0 }}
+          </div>
+        {% endif %}
+        <div class="form-help" style="margin-top: 8px;">
+          <i class="feather icon-info"></i>
+          Supported formats: JPG, PNG, GIF. Maximum size: 5MB.
+        </div>
       </div>
-    </div>
+      <div class="form-actions">
+        <button type="submit" class="form-submit" id="submit-btn">
+          <i class="feather icon-save"></i>
+          Update Profile
+        </button>
+        <a href="{% url 'users:user-detail' user.id %}" class="form-cancel">
+          <i class="feather icon-x"></i>
+          Cancel
+        </a>
+      </div>
+    </form>
   </div>
 </div>
-</body>
-</html>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const bioTextarea = document.getElementById('id_bio');
+    const bioCounter = document.getElementById('bio-counter');
+    const fileInput = document.getElementById('id_profile_picture');
+    const uploadButton = document.getElementById('file-upload-button');
+    const uploadText = document.getElementById('upload-text');
+    const selectedFile = document.getElementById('selected-file');
+    const submitBtn = document.getElementById('submit-btn');
+    function updateCharCounter() {
+      const count = bioTextarea.value.length;
+      const max = 500;
+      bioCounter.textContent = `${count} / ${max} characters`;
+      if (count > max * 0.9) {
+        bioCounter.classList.add('warning');
+      } else {
+        bioCounter.classList.remove('warning');
+      }
+      if (count > max) {
+        bioTextarea.value = bioTextarea.value.substring(0, max);
+        updateCharCounter();
+      }
+    }
+    bioTextarea.addEventListener('input', updateCharCounter);
+    updateCharCounter();
+    fileInput.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+        if (!allowedTypes.includes(file.type)) {
+          alert('Please select a valid image file (JPG, PNG, or GIF).');
+          fileInput.value = '';
+          return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+          alert('File size must be less than 5MB.');
+          fileInput.value = '';
+          return;
+        }
+        uploadText.textContent = 'File selected: ' + file.name;
+        selectedFile.textContent = file.name + ' (' + (file.size / 1024 / 1024).toFixed(2) + ' MB)';
+        selectedFile.style.display = 'block';
+        uploadButton.style.background = '#eaf3de';
+        uploadButton.style.borderColor = '#3B6D11';
+        uploadButton.style.color = '#2e5509';
+      } else {
+        uploadText.textContent = 'Choose a new profile picture';
+        selectedFile.style.display = 'none';
+        uploadButton.style.background = '#f7faf2';
+        uploadButton.style.borderColor = '#c0dd97';
+        uploadButton.style.color = '#5a7048';
+      }
+    });
+    uploadButton.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      uploadButton.classList.add('dragover');
+    });
+    uploadButton.addEventListener('dragleave', function(e) {
+      e.preventDefault();
+      uploadButton.classList.remove('dragover');
+    });
+    uploadButton.addEventListener('drop', function(e) {
+      e.preventDefault();
+      uploadButton.classList.remove('dragover');
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        fileInput.files = files;
+        fileInput.dispatchEvent(new Event('change'));
+      }
+    });
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+      submitBtn.innerHTML = '<i class="feather icon-loader"></i> Updating...';
+      submitBtn.disabled = true;
+      setTimeout(() => {
+        submitBtn.innerHTML = '<i class="feather icon-save"></i> Update Profile';
+        submitBtn.disabled = false;
+      }, 5000);
+    });
+    const inputs = form.querySelectorAll('textarea, input[type="file"]');
+    inputs.forEach(input => {
+      input.addEventListener('blur', function() {
+        if (this.type === 'file' && this.files.length > 0) {
+          return;
+        }
+        if (this.checkValidity()) {
+          this.classList.remove('form-error');
+        } else {
+          this.classList.add('form-error');
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}

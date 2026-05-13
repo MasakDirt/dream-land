@@ -2,350 +2,945 @@
 {% load commentary_filters %}
 {% load follower_filter %}
 {% load dream_filters %}
+{% load static %}
 
 {% block content %}
 
-  <div class="row">
-    <div class="col-md-12">
-      <div class="card shadow-sm border-0">
-        <div class="card-body">
-          <div class="row align-items-center">
-            <div class="col-sm-3 text-center">
-              {% if current_user.profile.profile_picture %}
-                <img class="rounded-circle img-thumbnail hei-120 wid-120"
-                     src="{{ current_user.profile.profile_picture.url }}"
-                     alt="Profile Picture">
-              {% else %}
-                {% load static %}
-                <img class="rounded-circle img-thumbnail hei-120 wid-120"
-                     src="{% static '/images/user-image.png' %}"
-                     alt="Default Profile Picture">
-              {% endif %}
-            </div>
-            <div class="col-sm-5">
-              <h2 class="font-weight-bold">{{ current_user.username }}</h2>
-              <h5 class="text-muted">{{ current_user.first_name }} {{ current_user.last_name }}</h5>
-              <p class="text-muted">Bio: {{ current_user.profile.bio }}</p>
-              {% if user != current_user %}
-                <form
-                    action="{% url 'users:user-follow' followed_pk=current_user.id follower_pk=user.id %}"
-                    method="post">
-                  {% csrf_token %}
-                  <button type="submit" class="btn btn-outline-primary">
-                    {% if user|is_following:current_user %}
-                      Unfollow
-                    {% else %}
-                      Follow
-                    {% endif %}
-                  </button>
-                </form>
-              {% else %}
-                <div class="row">
-                  <div class="col-sm-4">
-                    <a class="btn btn-outline-primary" href="
-                        {% if user.profile %}
-                            {% url 'users:profile-update' user_pk=user.id pk=user.profile.pk %}
-                        {% else %}
-                            {% url 'users:profile-create' user_pk=user.id %}
-                        {% endif %}">Update Profile</a>
-                  </div>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap');
 
-                  <div class="col-sm-3">
-                    <form action="{% url 'users:user-delete' user.id %}"
-                          method="post">
-                      {% csrf_token %}
-                      <input type="submit" value="Delete me"
-                             class="btn btn-outline-danger">
-                    </form>
-                  </div>
-                </div>
-              {% endif %}
-            </div>
-            <div class="col-sm-3">
-              <h6>Most usable:</h6>
-              <p><i class="fas fa-hamsa"></i> Emotion:
-                <strong>{{ top_emotion }}</strong></p>
-              <p><i class="fas fa-biohazard"></i> Symbol:
-                <strong>{{ top_symbol }}</strong></p>
-            </div>
-          </div>
-          <div class="row text-center mt-4">
-            <div class="col-sm-3">
-              <h6>Dreams</h6>
-              <p class="font-weight-bold">{{ current_user.dreams.count }}</p>
-            </div>
-            <div class="col-sm-3">
-              <h6>Liked</h6>
-              <p class="font-weight-bold">{{ current_user.dream_likes.count }}</p>
-            </div>
-            <div class="col-sm-3">
-              <h6>Disliked</h6>
-              <p class="font-weight-bold">{{ current_user.dream_dislikes.count }}</p>
-            </div>
-            <div class="col-sm-3">
-              <h6>Commented</h6>
-              <p class="font-weight-bold">{{ current_user.commentaries.count }}</p>
-            </div>
-          </div>
+  .profile-page {
+    font-family: 'DM Sans', sans-serif;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 1rem 4rem;
+  }
+
+  /* ── Hero card ── */
+  .profile-hero {
+    background: #fff;
+    border: 0.5px solid #e0e8d4;
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+
+  /* Cover banner */
+  .profile-cover {
+    height: 140px;
+    background: linear-gradient(135deg, #3B6D11 0%, #639922 50%, #97C459 100%);
+    position: relative;
+  }
+
+  /* Subtle pattern overlay */
+  .profile-cover::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle at 20% 50%, rgba(255,255,255,0.08) 0%, transparent 50%),
+                      radial-gradient(circle at 80% 20%, rgba(255,255,255,0.06) 0%, transparent 40%);
+  }
+
+  /* Avatar overlapping the cover */
+  .profile-avatar-wrap {
+    position: relative;
+    margin-top: -52px;
+    padding: 0 24px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .profile-avatar {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    object-fit: cover;
+    background: #fff;
+    box-shadow: 0 2px 12px rgba(26,46,18,0.12);
+    flex-shrink: 0;
+  }
+
+  .profile-avatar-initials {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    background: linear-gradient(135deg, #2e5509, #639922);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: 600;
+    color: #fff;
+    box-shadow: 0 2px 12px rgba(26,46,18,0.12);
+    flex-shrink: 0;
+  }
+
+  /* Action buttons aligned right of avatar */
+  .profile-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding-bottom: 6px;
+  }
+
+  .btn-follow {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 20px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: background 0.13s, border-color 0.13s;
+    text-decoration: none;
+    border: 1.5px solid #3B6D11;
+  }
+
+  .btn-follow.following {
+    background: transparent;
+    color: #3B6D11;
+  }
+
+  .btn-follow.following:hover {
+    background: #fdf2f2;
+    border-color: #c05040;
+    color: #993C1D;
+  }
+
+  .btn-follow.not-following {
+    background: #3B6D11;
+    color: #fff;
+  }
+
+  .btn-follow.not-following:hover {
+    background: #2e5509;
+  }
+
+  .btn-profile-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: background 0.13s;
+    text-decoration: none;
+    border: 1.5px solid #e0e8d4;
+    background: #fff;
+    color: #3a5428;
+  }
+
+  .btn-profile-action:hover {
+    background: #f1f7ea;
+    border-color: #c0dd97;
+    color: #1a2e12;
+    text-decoration: none;
+  }
+
+  .btn-danger-outline {
+    border-color: #f5c4b3;
+    color: #993C1D;
+    background: #fff;
+  }
+
+  .btn-danger-outline:hover {
+    background: #fdf2f2;
+    border-color: #c05040;
+    color: #993C1D;
+    text-decoration: none;
+  }
+
+  /* Profile info block */
+  .profile-info {
+    padding: 14px 24px 20px;
+  }
+
+  .profile-username {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    font-weight: 400;
+    color: #1a2e12;
+    margin: 0 0 2px;
+  }
+
+  .profile-fullname {
+    font-size: 13px;
+    color: #6b7c5e;
+    margin: 0 0 8px;
+  }
+
+  .profile-bio {
+    font-size: 13px;
+    color: #3a5428;
+    margin: 0 0 14px;
+    line-height: 1.6;
+    max-width: 500px;
+  }
+
+  /* Top emotion/symbol pills */
+  .profile-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .profile-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #eaf3de;
+    border: 0.5px solid #c0dd97;
+    border-radius: 999px;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #2e5509;
+  }
+
+  /* Stats row */
+  .profile-stats {
+    display: flex;
+    border-top: 0.5px solid #f0f5ea;
+    flex-wrap: wrap;
+  }
+
+  .stat-item {
+    flex: 1;
+    min-width: 80px;
+    text-align: center;
+    padding: 14px 8px;
+    border-right: 0.5px solid #f0f5ea;
+  }
+
+  .stat-item:last-child { border-right: none; }
+
+  .stat-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a2e12;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: #8a9e7a;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── Followers / Following row ── */
+  .social-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .social-card {
+    flex: 1;
+    min-width: 200px;
+    background: #fff;
+    border: 0.5px solid #e0e8d4;
+    border-radius: 16px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.13s, box-shadow 0.13s;
+  }
+
+  .social-card:hover {
+    border-color: #c0dd97;
+    box-shadow: 0 3px 12px rgba(26,46,18,0.07);
+  }
+
+  .social-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px 10px;
+    border-bottom: 0.5px solid #f0f5ea;
+  }
+
+  .social-card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1a2e12;
+    margin: 0;
+  }
+
+  .social-count {
+    background: #eaf3de;
+    border: 0.5px solid #c0dd97;
+    color: #2e5509;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 999px;
+    padding: 2px 10px;
+  }
+
+  .social-avatars {
+    padding: 12px 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .social-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 4px rgba(26,46,18,0.10);
+    transition: transform 0.13s;
+  }
+
+  .social-avatar:hover { transform: scale(1.08); }
+
+  /* ── Dreams section ── */
+  .dreams-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .dreams-section-header h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    font-weight: 400;
+    color: #1a2e12;
+    margin: 0;
+  }
+
+  .btn-add-dream {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #3B6D11;
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    text-decoration: none;
+    transition: background 0.13s;
+  }
+
+  .btn-add-dream:hover {
+    background: #2e5509;
+    color: #fff;
+    text-decoration: none;
+  }
+
+  /* ── Dream cards (reusing list style) ── */
+  .dream-card {
+    background: #fff;
+    border: 0.5px solid #e0e8d4;
+    border-radius: 16px;
+    margin-bottom: 16px;
+    overflow: hidden;
+    transition: box-shadow 0.15s, border-color 0.15s;
+  }
+
+  .dream-card:hover {
+    box-shadow: 0 4px 20px rgba(26,46,18,0.08);
+    border-color: #c0dd97;
+  }
+
+  .dream-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px 0;
+  }
+
+  .dream-date {
+    font-size: 11px;
+    color: #8a9e7a;
+  }
+
+  .dream-card-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .action-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    text-decoration: none;
+    transition: background 0.12s;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+  }
+
+  .action-btn.edit   { color: #b8860b; background: #fffbe6; }
+  .action-btn.edit:hover { background: #fff3cc; color: #8a6300; text-decoration: none; }
+  .action-btn.delete { color: #c05040; background: #fdf2f2; }
+  .action-btn.delete:hover { background: #f9e0da; color: #993C1D; text-decoration: none; }
+
+  .seen-badge       { font-size: 13px; color: #c0dd97; }
+  .seen-badge.unseen { color: #d0d8c8; }
+
+  .dream-card-body { padding: 10px 16px 0; }
+
+  .dream-title-link {
+    font-family: 'DM Serif Display', serif;
+    font-size: 19px;
+    font-weight: 400;
+    color: #1a2e12;
+    text-decoration: none;
+    display: block;
+    margin-bottom: 5px;
+    transition: color 0.13s;
+  }
+
+  .dream-title-link:hover { color: #3B6D11; text-decoration: none; }
+
+  .dream-excerpt {
+    font-size: 13px;
+    color: #5a7048;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  /* Reactions */
+  .dream-card-footer {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-top: 0.5px solid #f0f5ea;
+    margin-top: 12px;
+  }
+
+  .reaction-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition: background 0.12s;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .reaction-btn.like    { color: #c05040; background: #fdf2f2; }
+  .reaction-btn.like:hover,
+  .reaction-btn.like.active { background: #f9e0da; color: #993C1D; text-decoration: none; }
+  .reaction-btn.dislike { color: #6b7c5e; background: #f1f7ea; }
+  .reaction-btn.dislike:hover,
+  .reaction-btn.dislike.active { background: #e0efd0; color: #1a2e12; text-decoration: none; }
+
+  .comment-link {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #8a9e7a;
+    text-decoration: none;
+    padding: 5px 10px;
+    border-radius: 999px;
+    transition: background 0.12s, color 0.12s;
+  }
+
+  .comment-link:hover { background: #f1f7ea; color: #3B6D11; text-decoration: none; }
+
+  /* Comments preview */
+  .comments-preview {
+    padding: 0 16px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .comment-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .comment-avatar-sm {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .comment-body { flex: 1; min-width: 0; }
+
+  .comment-author {
+    font-size: 12px;
+    font-weight: 600;
+    color: #1a2e12;
+    text-decoration: none;
+  }
+
+  .comment-author:hover { color: #3B6D11; text-decoration: none; }
+
+  .comment-text {
+    font-size: 12px;
+    color: #5a7048;
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  .comment-like-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 11px;
+    color: #8a9e7a;
+    text-decoration: none;
+    margin-left: 6px;
+    transition: color 0.12s;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .comment-like-btn:hover { color: #c05040; }
+  .comment-like-btn.liked { color: #c05040; }
+
+  /* Comment input */
+  .dream-comment-row {
+    padding: 0 16px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-top: 0.5px solid #f0f5ea;
+    padding-top: 10px;
+  }
+
+  .comment-input-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  .comment-input-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    background: #f7faf2;
+    border: 0.5px solid #e0e8d4;
+    border-radius: 999px;
+    padding: 0 6px 0 14px;
+    gap: 6px;
+    transition: border-color 0.13s;
+  }
+
+  .comment-input-wrap:focus-within { border-color: #97C459; }
+
+  .comment-input-wrap input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: #1a2e12;
+    padding: 8px 0;
+    outline: none;
+  }
+
+  .comment-input-wrap input::placeholder { color: #a8bb98; }
+
+  .comment-submit {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #3B6D11;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    flex-shrink: 0;
+    transition: background 0.13s;
+  }
+
+  .comment-submit:hover { background: #2e5509; }
+
+  /* ── Empty state ── */
+  .dreams-empty {
+    text-align: center;
+    padding: 48px 20px;
+    color: #8a9e7a;
+    background: #fff;
+    border: 0.5px solid #e0e8d4;
+    border-radius: 16px;
+  }
+
+  .dreams-empty h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    font-weight: 400;
+    color: #1a2e12;
+    margin: 12px 0 6px;
+  }
+
+  .dreams-empty p { font-size: 13px; margin: 0; }
+</style>
+
+<div class="profile-page">
+
+  <!-- ── Hero card ── -->
+  <div class="profile-hero">
+
+    <!-- Cover banner -->
+    <div class="profile-cover"></div>
+
+    <!-- Avatar + actions -->
+    <div class="profile-avatar-wrap">
+      {% if current_user.profile.profile_picture %}
+        <img class="profile-avatar"
+             src="{{ current_user.profile.profile_picture.url }}"
+             alt="{{ current_user.username }}">
+      {% else %}
+        <div class="profile-avatar-initials">
+          {{ current_user.username|slice:":2"|upper }}
         </div>
+      {% endif %}
+
+      <div class="profile-actions">
+        {% if user != current_user %}
+          <form action="{% url 'users:user-follow' followed_pk=current_user.id follower_pk=user.id %}" method="post" style="display:contents;">
+            {% csrf_token %}
+            <button type="submit" class="btn-follow {% if user|is_following:current_user %}following{% else %}not-following{% endif %}">
+              {% if user|is_following:current_user %}
+                <i class="feather icon-user-minus"></i> Unfollow
+              {% else %}
+                <i class="feather icon-user-plus"></i> Follow
+              {% endif %}
+            </button>
+          </form>
+        {% else %}
+          <a class="btn-profile-action"
+             href="{% if user.profile %}{% url 'users:profile-update' user_pk=user.id pk=user.profile.pk %}{% else %}{% url 'users:profile-create' user_pk=user.id %}{% endif %}">
+            <i class="feather icon-edit-2"></i> Edit profile
+          </a>
+          <form action="{% url 'users:user-delete' user.id %}" method="post" style="display:contents;">
+            {% csrf_token %}
+            <button type="submit" class="btn-profile-action btn-danger-outline">
+              <i class="feather icon-trash-2"></i> Delete account
+            </button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Name + bio + tags -->
+    <div class="profile-info">
+      <h1 class="profile-username">{{ current_user.username }}</h1>
+      {% if current_user.first_name or current_user.last_name %}
+        <p class="profile-fullname">{{ current_user.first_name }} {{ current_user.last_name }}</p>
+      {% endif %}
+      {% if current_user.profile.bio %}
+        <p class="profile-bio">{{ current_user.profile.bio }}</p>
+      {% endif %}
+
+      <div class="profile-tags">
+        {% if top_emotion %}
+        <span class="profile-tag">
+          <i class="fas fa-hamsa" style="font-size:10px;"></i>
+          Top emotion: <strong>{{ top_emotion }}</strong>
+        </span>
+        {% endif %}
+        {% if top_symbol %}
+        <span class="profile-tag">
+          <i class="fas fa-biohazard" style="font-size:10px;"></i>
+          Top symbol: <strong>{{ top_symbol }}</strong>
+        </span>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Stats row -->
+    <div class="profile-stats">
+      <div class="stat-item">
+        <span class="stat-value">{{ current_user.dreams.count }}</span>
+        <span class="stat-label">Dreams</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value">{{ current_user.dream_likes.count }}</span>
+        <span class="stat-label">Liked</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value">{{ current_user.dream_dislikes.count }}</span>
+        <span class="stat-label">Disliked</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value">{{ current_user.commentaries.count }}</span>
+        <span class="stat-label">Comments</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value">{{ current_user.followers.count }}</span>
+        <span class="stat-label">Followers</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value">{{ current_user.following.count }}</span>
+        <span class="stat-label">Following</span>
       </div>
     </div>
   </div>
 
-  <div class="row">
-    <div class="col-md-8 order-md-2">
-      <div class="tab-content" id="myTabContent">
-        <div class="tab-pane fade show active">
-          {% if current_user == user %}
-            <a class="btn btn-success" style="float: right"
-               href="{% url 'dream:dream-create' current_user.id %}"><i
-                class="fas fa-plus-square"></i></a>
-          {% endif %}
-          <h3>Dreams:</h3>
-          {% for dream in current_user.dream_dtos %}
-            <div class="card">
-              <div class="card-header">
-                <p class="mb-0 text-muted">{{ dream.date_recorded }}</p>
-                <div class="card-header-right"
-                     style="padding: 5px; font-size: 1.3rem;">
-                  {% if current_user == user %}
-                    <a href="{% url 'dream:dream-update' user_pk=user.id pk=dream.id %}"
-                       class="text-c-yellow">
-                      <i class="feather icon-edit"></i>
-                    </a>
-                    <a href="#"
-                       onclick="document.getElementById('delete-dream-form-{{ dream.id }}').submit();"
-                       class="text-danger text-h-purple">
-                      <i class="feather icon-trash-2"></i>
-                    </a>
-                    <form id="delete-dream-form-{{ dream.id }}"
-                          action="{% url 'dream:dream-delete' user.id dream.id %}"
-                          method="post" style="display: none;">
-                      {% csrf_token %}
-                    </form>
-                  {% else %}
-                    {% if dream.is_visited %}
-                      <p><i class="fas fa-eye text-c-green"></i></p>
-                    {% else %}
-                      <p><i class="fas fa-eye text-muted"></i></p>
-                    {% endif %}
-                  {% endif %}
-                </div>
-              </div>
-              <div class="card-body">
-                <a href="{% url 'dream:dream-detail' current_user.id dream.id %}"
-                   class="text-h-primary">
-                  <h4>{{ dream.title }}</h4>
-                </a>
-                <p class="text-muted mb-0">{{ dream.description }}</p>
-              </div>
-              <div class="card-body border-top border-bottom">
-                <ul class="list-inline m-0">
-                  <li class="list-inline-item">
-                    <a href="#"
-                       onclick="document.getElementById('like-form-{{ dream.id }}').submit();"
-                       class="text-danger text-h-danger">
-                      {% if dream|is_authorized_user_liked:user %}
-                        <i class="feather icon-heart-on mr-2"></i>
-                      {% else %}
-                        <i class="feather icon-heart mr-2"></i>
-                      {% endif %}
-                      {{ dream.likes.count }}
-                    </a>
-                    <form id="like-form-{{ dream.id }}"
-                          action="{% url 'dream:dream-like' current_user.id dream.id %}"
-                          method="post" style="display: none;">
-                      {% csrf_token %}
-                      <input type="hidden" name="next"
-                             value="{{ request.path }}">
-                    </form>
-                  </li>
-                  <li class="list-inline-item">
-                    <a href="#"
-                       onclick="document.getElementById('dislike-form-{{ dream.id }}').submit();"
-                       class="text-muted text-h-primary">
-                      {% if dream|is_authorized_user_disliked:user %}
-                        <i class="fas fa-thumbs-down mr-2"></i>
-                      {% else %}
-                        <i class="feather icon-thumbs-down mr-2"></i>
-                      {% endif %}
-                      {{ dream.dislikes.count }}
-                    </a>
-                    <form id="dislike-form-{{ dream.id }}"
-                          action="{% url 'dream:dream-dislike' current_user.id dream.id %}"
-                          method="post" style="display: none;">
-                      {% csrf_token %}
-                      <input type="hidden" name="next"
-                             value="{{ request.path }}">
-                    </form>
-                  </li>
-                </ul>
-              </div>
-              <div class="card-body">
-                <div class="row justify-content-between mb-4">
-                  <div class="col-auto">
-                    <a href="{% url 'dream:dream-detail' current_user.id dream.pk %}"
-                       class="text-muted text-h-primary">Comment
-                      ({{ dream.commentaries.count }})</a></div>
-                </div>
-                {% for comment in dream.commentaries.all|slice:2 %}
-                  <div class="media mb-0">
-                    <img
-                        src="
-                        {% if comment.owner.profile.profile_picture %}
-                          {{ comment.owner.profile.profile_picture.url }}
-                        {% else %}
-                          {% static '/images/user-image.png' %}
-                        {% endif %}"
-                        alt="user image"
-                        class="img-radius wid-30 hei-30 align-top m-r-15">
-                    <div class="media-body">
-                      <a href="{% url 'users:user-detail' comment.owner.id %}">
-                        <h6 class="mb-0 text-h-primary">{{ comment.owner.username }}</h6>
-                      </a>
-                      <p class="m-b-0">{{ comment.content }}
-                        <a href="#"
-                           onclick="document.getElementById('comment-like-form-{{ comment.id }}').submit();"
-                           class="text-muted text-h-danger ml-1">
-                          {% if comment|is_user_liked:user %}
-                            <small><i
-                                class="feather icon-heart-on mr-2"></i></small>
-                          {% else %}
-                            <small><i
-                                class="feather icon-heart mr-2"></i></small>
-                          {% endif %}
-                        </a>
+  <!-- ── Followers / Following ── -->
+  <div class="social-row">
 
-                        <small>{{ comment.likes.count }}</small>
-                      <form id="comment-like-form-{{ comment.id }}"
-                            action="{% url 'dream:comment-like' current_user.id dream.id comment.id %}"
-                            method="post" style="display: none;">
-                        {% csrf_token %}
-                        <input type="hidden" name="next"
-                               value="{{ request.path }}">
-                      </form>
-                      </p>
-                    </div>
-                  </div>
-                  <hr>
-                {% endfor %}
-                <div class="media mb-0">
-                  <img
-                      src="
-                      {% if user.profile.profile_picture %}
-                        {{ user.profile.profile_picture.url }}
-                      {% else %}
-                        {% static '/images/user-image.png' %}
-                      {% endif %}
-"
-                      alt="user image"
-                      class="img-radius wid-40 hei-40 align-top m-r-15">
-                  <div class="media-body">
-                    <div class="input-group mb-3">
-                      <input type="text" id="comment-input-{{ dream.id }}"
-                             name="content"
-                             class="form-control form-control border-0 shadow-none px-0"
-                             placeholder="Write comment here! . . .">
-                      <div class="input-group-append">
-                        <button class="btn btn-primary"
-                                onclick="submitCommentForm('{{ dream.id }}');"
-                                type="button">
-                          <i class="feather icon-message-circle"></i>
-                        </button>
-                      </div>
-                      <form id="comment-create-{{ dream.id }}"
-                            action="{% url 'dream:commentary-create' current_user.id dream.id %}"
-                            method="post" style="display: none;" novalidate>
-                        {% csrf_token %}
-                        <input type="hidden" name="content"
-                               id="hidden-comment-{{ dream.id }}">
-                      </form>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          {% empty %}
-            <p class="text-danger">"{{ current_user.username }}" have no
-              dreams, yet!</p>
-          {% endfor %}
-        </div>
+    <div class="social-card clickable-card"
+         data-url="{% url 'users:user-followers' current_user.id %}">
+      <div class="social-card-header">
+        <p class="social-card-title">Followers</p>
+        <span class="social-count">{{ current_user.followers.count }}</span>
+      </div>
+      <div class="social-avatars">
+        {% for follow in current_user.followers.all|slice:10 %}
+          <a href="{% url 'users:user-detail' follow.follower.id %}"
+             title="{{ follow.follower.username }}"
+             onclick="event.stopPropagation()">
+            <img class="social-avatar"
+                 src="{% if follow.follower.profile.profile_picture %}{{ follow.follower.profile.profile_picture.url }}{% else %}{% static '/images/user-image.png' %}{% endif %}"
+                 alt="{{ follow.follower.username }}">
+          </a>
+        {% empty %}
+          <p style="font-size:12px;color:#8a9e7a;margin:0;">No followers yet</p>
+        {% endfor %}
       </div>
     </div>
-    <div class="col-md-4 order-md-1">
-      <div class="card clickable-card"
-           data-url="{% url 'users:user-followers' current_user.id %}">
-        <div
-            class="card-header d-flex align-items-center justify-content-between">
-          <h5 class="mb-0">Followers</h5>
-          <span
-              class="badge badge-light-primary float-right"> {{ current_user.followers.count }}</span>
-        </div>
-        <div class="card-body">
-          <ul class="list-inline">
-            {% for follow in current_user.followers.all|slice:10 %}
-              <li class="list-inline-item"><a
-                  href="{% url 'users:user-detail' follow.follower.id %}"><img
-                  src="
-                  {% if follow.follower.profile.profile_picture %}
-                    {{ follow.follower.profile.profile_picture.url }}
-                  {% else %}
-                    {% static '/images/user-image.png' %}
-                  {% endif %}"
-                  alt="user image" class="img-radius mb-2 wid-60 hei-60"
-                  data-toggle="tooltip" title="{{ follow.follower.username }}"></a>
-              </li>
-            {% endfor %}
-          </ul>
-        </div>
-      </div>
 
-      <div class="card clickable-card"
-           data-url="{% url 'users:user-followed' current_user.id %}">
-        <div
-            class="card-header d-flex align-items-center justify-content-between">
-          <h5 class="mb-0">Following</h5>
-          <span
-              class="badge badge-light-primary float-right"> {{ current_user.following.count }}</span>
-        </div>
-        <div class="card-body">
-          <ul class="list-inline">
-            {% for follow in current_user.following.all|slice:10 %}
-              <li class="list-inline-item"><a
-                  href="{% url 'users:user-detail' follow.followed.id %}"><img
-                  src="
-                  {% if follow.followed.profile.profile_picture %}
-                    {{ follow.followed.profile.profile_picture.url }}
-                  {% else %}
-                    {% static '/images/user-image.png' %}
-                  {% endif %}"
-                  alt="user image" class="img-radius mb-2 wid-60 hei-60"
-                  data-toggle="tooltip" title="{{ follow.followed.username }}"></a>
-              </li>
-            {% endfor %}
-          </ul>
-        </div>
+    <div class="social-card clickable-card"
+         data-url="{% url 'users:user-followed' current_user.id %}">
+      <div class="social-card-header">
+        <p class="social-card-title">Following</p>
+        <span class="social-count">{{ current_user.following.count }}</span>
+      </div>
+      <div class="social-avatars">
+        {% for follow in current_user.following.all|slice:10 %}
+          <a href="{% url 'users:user-detail' follow.followed.id %}"
+             title="{{ follow.followed.username }}"
+             onclick="event.stopPropagation()">
+            <img class="social-avatar"
+                 src="{% if follow.followed.profile.profile_picture %}{{ follow.followed.profile.profile_picture.url }}{% else %}{% static '/images/user-image.png' %}{% endif %}"
+                 alt="{{ follow.followed.username }}">
+          </a>
+        {% empty %}
+          <p style="font-size:12px;color:#8a9e7a;margin:0;">Not following anyone yet</p>
+        {% endfor %}
       </div>
     </div>
+
   </div>
 
-  <script>
-      document.addEventListener("DOMContentLoaded", function () {
-          const cards = document.querySelectorAll('.clickable-card');
-          cards.forEach(card => {
-              card.addEventListener('click', function () {
-                  window.location.href = card.getAttribute('data-url');
-              });
-          });
+  <!-- ── Dreams ── -->
+  <div class="dreams-section-header">
+    <h2>Dreams</h2>
+    {% if current_user == user %}
+      <a href="{% url 'dream:dream-create' current_user.id %}" class="btn-add-dream">
+        <i class="feather icon-plus"></i> New dream
+      </a>
+    {% endif %}
+  </div>
+
+  {% for dream in current_user.dream_dtos %}
+  <div class="dream-card">
+
+    <!-- Top row: date + actions -->
+    <div class="dream-card-top">
+      <span class="dream-date">{{ dream.date_recorded }}</span>
+      <div class="dream-card-actions">
+        {% if current_user == user %}
+          <a href="{% url 'dream:dream-update' user_pk=user.id pk=dream.id %}"
+             class="action-btn edit" title="Edit">
+            <i class="feather icon-edit-2"></i>
+          </a>
+          <a href="#"
+             onclick="document.getElementById('delete-dream-form-{{ dream.id }}').submit(); return false;"
+             class="action-btn delete" title="Delete">
+            <i class="feather icon-trash-2"></i>
+          </a>
+          <form id="delete-dream-form-{{ dream.id }}"
+                action="{% url 'dream:dream-delete' user.id dream.id %}"
+                method="post" style="display:none;">
+            {% csrf_token %}
+          </form>
+        {% else %}
+          <span class="seen-badge {% if not dream.is_visited %}unseen{% endif %}">
+            <i class="feather icon-eye"></i>
+          </span>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Title + excerpt -->
+    <div class="dream-card-body">
+      <a href="{% url 'dream:dream-detail' current_user.id dream.id %}" class="dream-title-link">
+        {{ dream.title }}
+      </a>
+      <p class="dream-excerpt">{{ dream.description }}</p>
+    </div>
+
+    <!-- Reactions -->
+    <div class="dream-card-footer">
+      <a href="#"
+         onclick="document.getElementById('like-form-{{ dream.id }}').submit(); return false;"
+         class="reaction-btn like {% if dream|is_authorized_user_liked:user %}active{% endif %}">
+        <i class="feather {% if dream|is_authorized_user_liked:user %}icon-heart-on{% else %}icon-heart{% endif %}"></i>
+        {{ dream.likes.count }}
+      </a>
+      <form id="like-form-{{ dream.id }}"
+            action="{% url 'dream:dream-like' current_user.id dream.id %}"
+            method="post" style="display:none;">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.path }}">
+      </form>
+
+      <a href="#"
+         onclick="document.getElementById('dislike-form-{{ dream.id }}').submit(); return false;"
+         class="reaction-btn dislike {% if dream|is_authorized_user_disliked:user %}active{% endif %}">
+        <i class="feather icon-thumbs-down"></i>
+        {{ dream.dislikes.count }}
+      </a>
+      <form id="dislike-form-{{ dream.id }}"
+            action="{% url 'dream:dream-dislike' current_user.id dream.id %}"
+            method="post" style="display:none;">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.path }}">
+      </form>
+
+      <a href="{% url 'dream:dream-detail' current_user.id dream.pk %}" class="comment-link">
+        <i class="feather icon-message-circle"></i>
+        {{ dream.commentaries.count }}
+      </a>
+    </div>
+
+    <!-- Comments preview (up to 2) -->
+    {% if dream.commentaries.all %}
+    <div class="comments-preview">
+      {% for comment in dream.commentaries.all|slice:2 %}
+      <div class="comment-row">
+        <img class="comment-avatar-sm"
+             src="{% if comment.owner.profile.profile_picture %}{{ comment.owner.profile.profile_picture.url }}{% else %}{% static '/images/user-image.png' %}{% endif %}"
+             alt="{{ comment.owner.username }}">
+        <div class="comment-body">
+          <a href="{% url 'users:user-detail' comment.owner.id %}" class="comment-author">{{ comment.owner.username }}</a>
+          <p class="comment-text">
+            {{ comment.content }}
+            <a href="#"
+               onclick="document.getElementById('comment-like-form-{{ comment.id }}').submit(); return false;"
+               class="comment-like-btn {% if comment|is_user_liked:user %}liked{% endif %}">
+              <i class="feather {% if comment|is_user_liked:user %}icon-heart-on{% else %}icon-heart{% endif %}"></i>
+              {{ comment.likes.count }}
+            </a>
+          </p>
+          <form id="comment-like-form-{{ comment.id }}"
+                action="{% url 'dream:comment-like' current_user.id dream.id comment.id %}"
+                method="post" style="display:none;">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.path }}">
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Comment input -->
+    {% if user.is_authenticated %}
+    <div class="dream-comment-row">
+      <img class="comment-input-avatar"
+           src="{% if user.profile.profile_picture %}{{ user.profile.profile_picture.url }}{% else %}{% static '/images/user-image.png' %}{% endif %}"
+           alt="You">
+      <div class="comment-input-wrap">
+        <input type="text"
+               id="comment-input-{{ dream.id }}"
+               placeholder="Add a comment…">
+        <button class="comment-submit" onclick="submitCommentForm('{{ dream.id }}')">
+          <i class="feather icon-send" style="font-size:11px;"></i>
+        </button>
+      </div>
+      <form id="comment-create-{{ dream.id }}"
+            action="{% url 'dream:commentary-create' current_user.id dream.id %}"
+            method="post" style="display:none;" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="content" id="hidden-comment-{{ dream.id }}">
+      </form>
+    </div>
+    {% endif %}
+
+  </div>
+  {% empty %}
+  <div class="dreams-empty">
+    <div style="width:48px;height:48px;border-radius:50%;background:#eaf3de;display:flex;align-items:center;justify-content:center;margin:0 auto;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2v10z"
+              stroke="#3B6D11" stroke-width="1.5" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <h3>No dreams yet</h3>
+    <p>{{ current_user.username }} hasn't shared any dreams.</p>
+  </div>
+  {% endfor %}
+
+</div>
+
+<script>
+  // Clickable social cards
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.clickable-card').forEach(card => {
+      card.addEventListener('click', () => {
+        window.location.href = card.getAttribute('data-url');
       });
+    });
+  });
 
-      function submitCommentForm(dreamId) {
-          document.getElementById('hidden-comment-' + dreamId).value = document.getElementById('comment-input-' + dreamId).value;
-          document.getElementById('comment-create-' + dreamId).submit();
+  // Comment submit
+  function submitCommentForm(dreamId) {
+    const val = document.getElementById('comment-input-' + dreamId).value.trim();
+    if (!val) return;
+    document.getElementById('hidden-comment-' + dreamId).value = val;
+    document.getElementById('comment-create-' + dreamId).submit();
+  }
+
+  // Enter to submit comment
+  document.querySelectorAll('[id^="comment-input-"]').forEach(input => {
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        submitCommentForm(input.id.replace('comment-input-', ''));
       }
+    });
+  });
+</script>
 
-      $(document).ready(function () {
-          $('[title]').tooltip();
-      });
-  </script>
 {% endblock %}

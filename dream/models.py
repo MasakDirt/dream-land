@@ -45,10 +45,12 @@ class Dream(models.Model):
         return f"{self.title} ({self.description[:33]}...)"
 
     def get_absolute_url(self) -> HttpResponse:
-        return reverse("dream:dream-detail", kwargs={
-            "user_pk": str(self.user.id),
-            "pk": str(self.pk),
-        })
+        return reverse(
+            "dream:dream-detail", kwargs={
+                "user_pk": str(self.user.id),
+                "pk": str(self.pk),
+            }
+        )
 
 
 class DreamLike(models.Model):
@@ -93,8 +95,8 @@ class DreamDislike(models.Model):
 
     @staticmethod
     def is_user_disliked(
-            owner: settings.AUTH_USER_MODEL,
-            dream: Dream
+        owner: settings.AUTH_USER_MODEL,
+        dream: Dream
     ) -> bool:
         return DreamDislike.objects.filter(
             owner=owner,
@@ -142,8 +144,8 @@ class CommentaryLike(models.Model):
 
     @staticmethod
     def is_user_liked(
-            owner: settings.AUTH_USER_MODEL,
-            commentary: Commentary
+        owner: settings.AUTH_USER_MODEL,
+        commentary: Commentary
     ) -> bool:
         return CommentaryLike.objects.filter(
             owner=owner,
@@ -169,10 +171,42 @@ class CommentaryDislike(models.Model):
 
     @staticmethod
     def is_user_disliked(
-            owner: settings.AUTH_USER_MODEL,
-            commentary: Commentary
+        owner: settings.AUTH_USER_MODEL,
+        commentary: Commentary
     ) -> bool:
         return CommentaryDislike.objects.filter(
             owner=owner,
             commentary=commentary
         ).exists()
+
+
+class ChatThread(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="chat_threads"
+    )
+    title = models.CharField(max_length=200, default="New conversation")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at"]
+
+    def __str__(self):
+        return f"{self.user.username} — {self.title}"
+
+
+class ChatMessage(models.Model):
+    ROLE_CHOICES = [("user", "User"), ("assistant", "Assistant")]
+
+    thread = models.ForeignKey(ChatThread, on_delete=models.CASCADE, related_name="messages")
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at"]
+
+    def __str__(self):
+        return f"[{self.role}] {self.content[:60]}"

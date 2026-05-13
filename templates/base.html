@@ -17,6 +17,17 @@
         href="{% static 'assets/css/style.css' %}">
   <link rel="icon" href="{% static 'images/favicon.png' %}"
         type="image/icon type">
+
+  <style>
+      body {
+          margin: 0;
+          padding: 0;
+      }
+
+      .pcoded-main-container {
+          margin-left: 240px;
+      }
+  </style>
 </head>
 
 <body>
@@ -25,10 +36,6 @@
   {% include 'includes/sidebar.html' %}
 {% endblock %}
 
-
-{% block navigation %}
-    {% include 'includes/navigation.html' %}
-{% endblock %}
 
 <div class="pcoded-main-container">
   <div class="pcoded-content">

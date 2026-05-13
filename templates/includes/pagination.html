@@ -1,40 +1,115 @@
 {% load query_transform %}
 
 {% if is_paginated %}
-  <ul class="pagination justify-content-center">
-    {% if page_obj.has_previous %}
-      <li class="page-item">
-        <a href="?{% query_transform request page=1 %}"
-           class="page-link"><i class="feather icon-chevrons-left"></i></a>
-      </li>
-      <li class="page-item">
-        <a href="?{% query_transform request page=page_obj.previous_page_number %}"
-           class="page-link"><i class="feather icon-arrow-left"></i></a>
-      </li>
-      <li class="page-item">
-        <a href="?{% query_transform request page=page_obj.previous_page_number %}"
-           class="page-link">{{ page_obj.previous_page_number }}</a>
-      </li>
-    {% endif %}
-    <li class="page-item active">
-      <span
-          class="page-link">{{ page_obj.number }}</span>
-    </li>
-    {% if page_obj.has_next %}
-      <li class="page-item">
-        <a href="?{% query_transform request page=page_obj.next_page_number %}"
-           class="page-link">{{ page_obj.next_page_number }}</a>
-      </li>
-      
-      <li class="page-item">
-        <a href="?{% query_transform request page=page_obj.next_page_number %}"
-           class="page-link"><i class="feather icon-arrow-right"></i></a>
-      </li>
-      
-      <li class="page-item">
-        <a href="?{% query_transform request page=paginator.num_pages %}"
-           class="page-link"><i class="feather icon-chevrons-right"></i></a>
-      </li>
-    {% endif %}
-  </ul>
+
+<style>
+  .pagination-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    padding: 24px 0 8px;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .page-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 10px;
+    border-radius: 9px;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    border: 0.5px solid #e0e8d4;
+    background: #fff;
+    color: #3a5428;
+    transition: background 0.13s, border-color 0.13s, color 0.13s;
+    cursor: pointer;
+    line-height: 1;
+  }
+
+  .page-btn:hover {
+    background: #f1f7ea;
+    border-color: #c0dd97;
+    color: #1a2e12;
+    text-decoration: none;
+  }
+
+  .page-btn.active {
+    background: #3B6D11;
+    border-color: #3B6D11;
+    color: #fff;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  .page-btn.icon-btn {
+    color: #8a9e7a;
+  }
+
+  .page-btn.disabled {
+    opacity: 0.35;
+    pointer-events: none;
+  }
+
+  .page-divider {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #c0dd97;
+    margin: 0 2px;
+    flex-shrink: 0;
+  }
+</style>
+
+<div class="pagination-wrap">
+
+  <!-- First page -->
+  {% if page_obj.has_previous %}
+    <a href="?{% query_transform request page=1 %}" class="page-btn icon-btn" title="First page">
+      <i class="feather icon-chevrons-left"></i>
+    </a>
+    <!-- Prev page -->
+    <a href="?{% query_transform request page=page_obj.previous_page_number %}" class="page-btn icon-btn" title="Previous">
+      <i class="feather icon-chevron-left"></i>
+    </a>
+    <!-- Prev page number -->
+    <a href="?{% query_transform request page=page_obj.previous_page_number %}" class="page-btn">
+      {{ page_obj.previous_page_number }}
+    </a>
+  {% endif %}
+
+  <!-- Divider before current -->
+  {% if page_obj.has_previous %}
+    <div class="page-divider"></div>
+  {% endif %}
+
+  <!-- Current page -->
+  <span class="page-btn active">{{ page_obj.number }}</span>
+
+  <!-- Divider after current -->
+  {% if page_obj.has_next %}
+    <div class="page-divider"></div>
+  {% endif %}
+
+  {% if page_obj.has_next %}
+    <!-- Next page number -->
+    <a href="?{% query_transform request page=page_obj.next_page_number %}" class="page-btn">
+      {{ page_obj.next_page_number }}
+    </a>
+    <!-- Next page -->
+    <a href="?{% query_transform request page=page_obj.next_page_number %}" class="page-btn icon-btn" title="Next">
+      <i class="feather icon-chevron-right"></i>
+    </a>
+    <!-- Last page -->
+    <a href="?{% query_transform request page=paginator.num_pages %}" class="page-btn icon-btn" title="Last page">
+      <i class="feather icon-chevrons-right"></i>
+    </a>
+  {% endif %}
+
+</div>
+
 {% endif %}

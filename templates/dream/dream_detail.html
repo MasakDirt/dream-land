@@ -1,232 +1,582 @@
 {% extends "base.html" %}
 {% load dream_filters %}
 {% load commentary_filters %}
+{% load static %}
 
 {% block content %}
-  <div class="card">
-    <div class="card-header d-flex align-items-center justify-content-between">
-      <div class="d-flex align-items-center">
-        <a href="{% url 'users:user-detail' pk=dream.user.id %}">
-          <img class="rounded-circle img-radius hei-40 wid-40"
-               src="
-                {% if dream.user.profile.profile_picture %}
-                    {{ dream.user.profile.profile_picture.url }}
-                {% else %}          
-                    {% load static %}
-                    {% static 'images/user-image.png' %}
-                {% endif %}"
-               alt="Img">
-        </a>
-        <div class="ml-3" style="margin-left: 5px">
-          <h5 class="font-weight-normal mb-1">
-            <a href="{% url 'users:user-detail' pk=dream.user.id %}"
-               class="text-h-primary text-reset">
-              <b class="font-weight-bolder"><strong>{{ dream.user.username }}</strong></b>
-            </a> posted
-          </h5>
-          <p class="mb-0 text-muted">{{ dream.date_recorded }}</p>
-        </div>
-      </div>
-      <div class="text-center mx-auto">
-        <h1>{{ dream.title }}</h1>
-        <p class="text-muted mb-0">
-          Emotions:
-          {% for emotion in dream.emotions.all %}
-            <span
-                class="">{{ emotion.name }}</span>
-          {% endfor %}
-        </p>
-        <p class=" text-muted mb-0">
-          Symbols:
-          {% for symbol in dream.symbols.all %}
-            <span
-                class="">{{ symbol.name }} </span>
-          {% endfor %}
-        </p>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap');
+
+  .dream-detail-page {
+    font-family: 'DM Sans', sans-serif;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem 1rem 4rem;
+  }
+
+  /* ── Dream header ── */
+  .dream-header {
+    background: #fff;
+    border: 0.5px solid #e0e8d4;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    transition: box-shadow 0.15s, border-color 0.15s;
+  }
+
+  .dream-header:hover {
+    box-shadow: 0 8px 24px rgba(26,46,18,0.1);
+    border-color: #c0dd97;
+  }
+
+  .dream-author {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .author-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  .author-info h5 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    font-weight: 400;
+    color: #1a2e12;
+    margin: 0 0 4px;
+  }
+
+  .author-info .author-name {
+    color: #3B6D11;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .author-info .author-name:hover {
+    color: #2e5509;
+    text-decoration: none;
+  }
+
+  .author-date {
+    font-size: 12px;
+    color: #8a9e7a;
+    margin: 0;
+  }
+
+  .dream-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    font-weight: 400;
+    color: #1a2e12;
+    margin: 0 0 12px;
+    line-height: 1.3;
+  }
+
+  .dream-meta {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 16px;
+  }
+
+  .meta-item {
+    font-size: 14px;
+    color: #5a7048;
+  }
+
+  .meta-item strong {
+    color: #1a2e12;
+  }
+
+  .dream-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+  }
+
+  .action-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    text-decoration: none;
+    transition: background 0.13s;
+    border: none;
+    cursor: pointer;
+  }
+
+  .action-btn.edit {
+    color: #b8860b;
+    background: #fffbe6;
+  }
+
+  .action-btn.edit:hover {
+    background: #fff3cc;
+    color: #8a6300;
+  }
+
+  .action-btn.delete {
+    color: #c05040;
+    background: #fdf2f2;
+  }
+
+  .action-btn.delete:hover {
+    background: #f9e0da;
+    color: #993C1D;
+  }
+
+  /* ── Dream content ── */
+  .dream-content {
+    background: #fff;
+    border: 0.5px solid #e0e8d4;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    transition: box-shadow 0.15s, border-color 0.15s;
+  }
+
+  .dream-content:hover {
+    box-shadow: 0 8px 24px rgba(26,46,18,0.1);
+    border-color: #c0dd97;
+  }
+
+  .dream-description {
+    font-size: 16px;
+    line-height: 1.6;
+    color: #1a2e12;
+    margin: 0;
+  }
+
+  /* ── Reactions ── */
+  .dream-reactions {
+    background: #fff;
+    border: 0.5px solid #e0e8d4;
+    border-radius: 16px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    transition: box-shadow 0.15s, border-color 0.15s;
+  }
+
+  .dream-reactions:hover {
+    box-shadow: 0 8px 24px rgba(26,46,18,0.1);
+    border-color: #c0dd97;
+  }
+
+  .reaction-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 24px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition: background 0.13s;
+    margin-right: 16px;
+  }
+
+  .reaction-btn.like {
+    color: #c05040;
+    background: #fdf2f2;
+  }
+
+  .reaction-btn.like:hover, .reaction-btn.like.active {
+    background: #f9e0da;
+    color: #993C1D;
+  }
+
+  .reaction-btn.dislike {
+    color: #6b7c5e;
+    background: #f1f7ea;
+  }
+
+  .reaction-btn.dislike:hover, .reaction-btn.dislike.active {
+    background: #e0efd0;
+    color: #1a2e12;
+  }
+
+  /* ── Comments section ── */
+  .comments-section {
+    background: #fff;
+    border: 0.5px solid #e0e8d4;
+    border-radius: 16px;
+    padding: 24px;
+    transition: box-shadow 0.15s, border-color 0.15s;
+  }
+
+  .comments-section:hover {
+    box-shadow: 0 8px 24px rgba(26,46,18,0.1);
+    border-color: #c0dd97;
+  }
+
+  .comments-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .comments-count {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    font-weight: 400;
+    color: #1a2e12;
+    margin: 0;
+  }
+
+  /* ── Comment item ── */
+  .comment-item {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 0.5px solid #f0f5ea;
+  }
+
+  .comment-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .comment-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  .comment-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .comment-author {
+    font-weight: 600;
+    color: #3B6D11;
+    text-decoration: none;
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+
+  .comment-author:hover {
+    color: #2e5509;
+    text-decoration: none;
+  }
+
+  .comment-text {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #1a2e12;
+    margin-bottom: 8px;
+  }
+
+  .comment-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .comment-reaction {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: #8a9e7a;
+    text-decoration: none;
+    padding: 4px 8px;
+    border-radius: 12px;
+    transition: background 0.13s;
+  }
+
+  .comment-reaction:hover {
+    background: #f1f7ea;
+    color: #3B6D11;
+    text-decoration: none;
+  }
+
+  .comment-reaction.active {
+    background: #eaf3de;
+    color: #2e5509;
+  }
+
+  .comment-delete {
+    color: #c05040;
+    text-decoration: none;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background 0.13s;
+  }
+
+  .comment-delete:hover {
+    background: #fdf2f2;
+    color: #993C1D;
+  }
+
+  /* ── Comment form ── */
+  .comment-form {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  .comment-input-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    background: #f7faf2;
+    border: 0.5px solid #e0e8d4;
+    border-radius: 24px;
+    padding: 0 6px 0 16px;
+    gap: 8px;
+    transition: border-color 0.13s;
+  }
+
+  .comment-input-wrap:focus-within {
+    border-color: #97C459;
+  }
+
+  .comment-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: #1a2e12;
+    padding: 12px 0;
+    outline: none;
+  }
+
+  .comment-input::placeholder {
+    color: #a8bb98;
+  }
+
+  .comment-submit {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #3B6D11;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    flex-shrink: 0;
+    transition: background 0.13s;
+  }
+
+  .comment-submit:hover {
+    background: #2e5509;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .dream-detail-page {
+      padding: 1rem 0.5rem 2rem;
+    }
+    .dream-meta {
+      flex-direction: column;
+      gap: 8px;
+    }
+    .comments-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+  }
+</style>
+
+<div class="dream-detail-page">
+
+  <!-- Dream Header -->
+  <div class="dream-header">
+    <div class="dream-author">
+      <a href="{% url 'users:user-detail' pk=dream.user.id %}">
+        <img class="author-avatar"
+             src="{% if dream.user.profile.profile_picture %}{{ dream.user.profile.profile_picture.url }}{% else %}{% static 'images/user-image.png' %}{% endif %}"
+             alt="{{ dream.user.username }}">
+      </a>
+      <div class="author-info">
+        <h5>
+          <a href="{% url 'users:user-detail' pk=dream.user.id %}" class="author-name">
+            {{ dream.user.username }}
+          </a> shared a dream
+        </h5>
+        <p class="author-date">{{ dream.date_recorded }}</p>
       </div>
       {% if user == dream.user %}
-        <div class="card-header-right"
-             style="padding: 5px; font-size: 1.5rem;">
-          <a href="{% url 'dream:dream-update' user_pk=user.id pk=dream.id %}"
-             class="text-c-yellow">
-            <i class="feather icon-edit"></i>
-          </a>
-          <a href="#"
-             onclick="document.getElementById('delete-dream-form-{{ dream.id }}').submit();"
-             class="text-danger text-h-purple">
-            <i class="feather icon-trash-2"></i>
-          </a>
-          <form id="delete-dream-form-{{ dream.id }}"
-                action="{% url 'dream:dream-delete' user.id dream.id %}"
-                method="post" style="display: none;">
-            {% csrf_token %}
-          </form>
-        </div>
+      <div class="dream-actions">
+        <a href="{% url 'dream:dream-update' user_pk=user.id pk=dream.id %}" class="action-btn edit" title="Edit">
+          <i class="feather icon-edit"></i>
+        </a>
+        <a href="#" onclick="document.getElementById('delete-dream-form-{{ dream.id }}').submit();" class="action-btn delete" title="Delete">
+          <i class="feather icon-trash-2"></i>
+        </a>
+        <form id="delete-dream-form-{{ dream.id }}" action="{% url 'dream:dream-delete' user.id dream.id %}" method="post" style="display: none;">
+          {% csrf_token %}
+        </form>
+      </div>
       {% endif %}
     </div>
 
-    <div class="card-body">
-      <h5 class="text-muted mb-0">
-        {{ dream.description }}
-      </h5>
-    </div>
-    <div class="card-body border-top border-bottom">
-      <ul class="list-inline m-0">
-        <li class="list-inline-item" style="font-size: 1.15rem;">
-          <a href="#"
-             onclick="document.getElementById('like-form-{{ dream.id }}').submit();"
-             class="text-danger text-h-danger">
-            {% if dream|is_authorized_user_liked:user %}
-              <i class="feather icon-heart-on mr-2"></i>
-            {% else %}
-              <i class="feather icon-heart mr-2"></i>
-            {% endif %}
-            {{ dream.likes.count }}
-          </a>
-          <form id="like-form-{{ dream.id }}"
-                action="{% url 'dream:dream-like' dream.user.id dream.id %}"
-                method="post" style="display: none;">
-            {% csrf_token %}
-            <input type="hidden" name="next" value="{{ request.path }}">
-          </form>
-        </li>
-        <li class="list-inline-item" style="font-size: 1.15rem;">
-          <a href="#"
-             onclick="document.getElementById('dislike-form-{{ dream.id }}').submit();"
-             class="text-muted text-h-primary">
-            {% if dream|is_authorized_user_disliked:user %}
-              <i class="fas fa-thumbs-down mr-2"></i>
-            {% else %}
-              <i class="feather icon-thumbs-down mr-2"></i>
-            {% endif %}
-            {{ dream.dislikes.count }}
-          </a>
-          <form id="dislike-form-{{ dream.id }}"
-                action="{% url 'dream:dream-dislike' dream.user.id dream.id %}"
-                method="post" style="display: none;">
-            {% csrf_token %}
-            <input type="hidden" name="next" value="{{ request.path }}">
-          </form>
-        </li>
-      </ul>
-    </div>
-    <div class="card-body">
-      <div class="row justify-content-between mb-4">
-        <div class="col-auto">
-          <a href="{% url 'dream:dream-detail' dream.user.id dream.id %}"
-             class="text-muted text-h-primary">Comment
-            ({{ dream.commentaries.count }})</a></div>
+    <h1 class="dream-title">{{ dream.title }}</h1>
+
+    <div class="dream-meta">
+      <div class="meta-item">
+        <strong>Emotions:</strong>
+        {% for emotion in dream.emotions.all %}
+          <span>{{ emotion.name }}{% if not forloop.last %}, {% endif %}</span>
+        {% endfor %}
       </div>
-      {% for comment in dream.commentaries.all %}
-        <div class="media mb-0">
-          <img
-              src="
-                        {% if comment.owner.profile.profile_picture %}
-                          {{ comment.owner.profile.profile_picture.url }}
-                        {% else %}
-                          {% static 'images/user-image.png' %}
-                        {% endif %}"
-              alt="user image"
-              class="img-radius wid-30 hei-30 align-top m-r-15">
-          <div class="media-body">
-            <a href="{% url 'users:user-detail' comment.owner.id %}">
-              <h6 class="mb-0 text-h-primary">{{ comment.owner.username }}</h6>
-            </a>
-            {% if user == comment.owner %}
-              <a href="#"
-                 onclick="document.getElementById('comment-delete-{{ comment.id }}').submit();"
-                 style="float: right" class="text-danger">
-                <i class="feather icon-x"></i>
-              </a>
-              <form id="comment-delete-{{ comment.id }}"
-                    action="{% url 'dream:commentary-delete' dream.user.id dream.id comment.id %}"
-                    method="post" style="display: none;">
-                {% csrf_token %}
-              </form>
-            {% endif %}
-            <p class="m-b-0">{{ comment.content }}
-              <a href="#"
-                 onclick="document.getElementById('comment-like-form-{{ comment.id }}').submit();"
-                 class="text-muted text-h-danger ml-1">
-                {% if comment|is_user_liked:user %}
-                  <small><i
-                      class="feather icon-heart-on mr-2"></i></small>
-                {% else %}
-                  <small><i
-                      class="feather icon-heart mr-2"></i></small>
-                {% endif %}
-              </a>
-              <small>{{ comment.likes.count }}</small>
-
-              <a href="#"
-                 onclick="document.getElementById('comment-dislike-form-{{ comment.id }}').submit();"
-                 class="text-muted text-h-primary">
-                {% if comment|is_user_disliked:user %}
-                  <small><i class="fas fa-thumbs-down mr-2"></i></small>
-                {% else %}
-                  <small><i
-                      class="feather icon-thumbs-down mr-2"></i></small>
-                {% endif %}
-              </a>
-
-              <small>{{ comment.dislikes.count }}</small>
-            <form id="comment-like-form-{{ comment.id }}"
-                  action="{% url 'dream:comment-like' dream.user.id dream.id comment.id %}"
-                  method="post" style="display: none;">
-              {% csrf_token %}
-              <input type="hidden" name="next" value="{{ request.path }}">
-            </form>
-
-            <form id="comment-dislike-form-{{ comment.id }}"
-                  action="{% url 'dream:comment-dislike' dream.user.id dream.id comment.id %}"
-                  method="post" style="display: none;">
-              {% csrf_token %}
-              <input type="hidden" name="next" value="{{ request.path }}">
-            </form>
-            </p>
-          </div>
-        </div>
-        <hr>
-      {% endfor %}
-      <div class="media mb-0">
-        <img src="
-                      {% if user.profile.profile_picture %}
-                        {{ user.profile.profile_picture.url }}
-                      {% else %}
-                        {% static 'images/user-image.png' %}
-                      {% endif %}"
-             alt="user image"
-             class="img-radius wid-40 hei-40 align-top m-r-15">
-        <div class="media-body">
-          <div class="input-group mb-3">
-            <input type="text" id="comment-input-{{ dream.id }}"
-                   name="content"
-                   class="form-control form-control border-0 shadow-none px-0"
-                   placeholder="Write comment here! . . .">
-            <div class="input-group-append">
-              <button class="btn btn-primary"
-                      onclick="submitCommentForm('{{ dream.id }}');"
-                      type="button">
-                <i class="feather icon-message-circle"></i>
-              </button>
-            </div>
-            <form id="comment-create-{{ dream.id }}"
-                  action="{% url 'dream:commentary-create' dream.user.id dream.id %}"
-                  method="post" style="display: none;" novalidate>
-              {% csrf_token %}
-              <input type="hidden" name="content"
-                     id="hidden-comment-{{ dream.id }}">
-            </form>
-          </div>
-        </div>
+      <div class="meta-item">
+        <strong>Symbols:</strong>
+        {% for symbol in dream.symbols.all %}
+          <span>{{ symbol.name }}{% if not forloop.last %}, {% endif %}</span>
+        {% endfor %}
       </div>
     </div>
   </div>
 
-  <script>
-      function submitCommentForm(dreamId) {
-          document.getElementById('hidden-comment-' + dreamId).value = document.getElementById('comment-input-' + dreamId).value;
-          document.getElementById('comment-create-' + dreamId).submit();
-      }
-  </script>
+  <!-- Dream Content -->
+  <div class="dream-content">
+    <p class="dream-description">{{ dream.description|linebreaks }}</p>
+  </div>
+
+  <!-- Reactions -->
+  <div class="dream-reactions">
+    <a href="#" onclick="document.getElementById('like-form-{{ dream.id }}').submit();"
+       class="reaction-btn like {% if dream|is_authorized_user_liked:user %}active{% endif %}">
+      <i class="feather {% if dream|is_authorized_user_liked:user %}icon-heart-on{% else %}icon-heart{% endif %}"></i>
+      {{ dream.likes.count }}
+    </a>
+    <form id="like-form-{{ dream.id }}" action="{% url 'dream:dream-like' dream.user.id dream.id %}" method="post" style="display: none;">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ request.path }}">
+    </form>
+
+    <a href="#" onclick="document.getElementById('dislike-form-{{ dream.id }}').submit();"
+       class="reaction-btn dislike {% if dream|is_authorized_user_disliked:user %}active{% endif %}">
+      <i class="feather icon-thumbs-down"></i>
+      {{ dream.dislikes.count }}
+    </a>
+    <form id="dislike-form-{{ dream.id }}" action="{% url 'dream:dream-dislike' dream.user.id dream.id %}" method="post" style="display: none;">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ request.path }}">
+    </form>
+  </div>
+
+  <!-- Comments Section -->
+  <div class="comments-section">
+    <div class="comments-header">
+      <h3 class="comments-count">Comments ({{ dream.commentaries.count }})</h3>
+    </div>
+
+    {% for comment in dream.commentaries.all %}
+    <div class="comment-item">
+      <img class="comment-avatar"
+           src="{% if comment.owner.profile.profile_picture %}{{ comment.owner.profile.profile_picture.url }}{% else %}{% static 'images/user-image.png' %}{% endif %}"
+           alt="{{ comment.owner.username }}">
+
+      <div class="comment-content">
+        <a href="{% url 'users:user-detail' comment.owner.id %}" class="comment-author">
+          {{ comment.owner.username }}
+        </a>
+
+        <p class="comment-text">{{ comment.content }}</p>
+
+        <div class="comment-actions">
+          <a href="#" onclick="document.getElementById('comment-like-form-{{ comment.id }}').submit();"
+             class="comment-reaction {% if comment|is_user_liked:user %}active{% endif %}">
+            <i class="feather {% if comment|is_user_liked:user %}icon-heart-on{% else %}icon-heart{% endif %}"></i>
+            {{ comment.likes.count }}
+          </a>
+          <form id="comment-like-form-{{ comment.id }}" action="{% url 'dream:comment-like' dream.user.id dream.id comment.id %}" method="post" style="display: none;">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.path }}">
+          </form>
+
+          <a href="#" onclick="document.getElementById('comment-dislike-form-{{ comment.id }}').submit();"
+             class="comment-reaction {% if comment|is_user_disliked:user %}active{% endif %}">
+            <i class="feather icon-thumbs-down"></i>
+            {{ comment.dislikes.count }}
+          </a>
+          <form id="comment-dislike-form-{{ comment.id }}" action="{% url 'dream:comment-dislike' dream.user.id dream.id comment.id %}" method="post" style="display: none;">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.path }}">
+          </form>
+
+          {% if user == comment.owner %}
+          <a href="#" onclick="document.getElementById('comment-delete-{{ comment.id }}').submit();" class="comment-delete" title="Delete comment">
+            <i class="feather icon-x"></i>
+          </a>
+          <form id="comment-delete-{{ comment.id }}" action="{% url 'dream:commentary-delete' dream.user.id dream.id comment.id %}" method="post" style="display: none;">
+            {% csrf_token %}
+          </form>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+
+    {% if user.is_authenticated %}
+    <div class="comment-form">
+      <img class="comment-avatar"
+           src="{% if user.profile.profile_picture %}{{ user.profile.profile_picture.url }}{% else %}{% static 'images/user-image.png' %}{% endif %}"
+           alt="You">
+
+      <div class="comment-input-wrap">
+        <input type="text" id="comment-input-{{ dream.id }}" class="comment-input" placeholder="Share your thoughts...">
+        <button class="comment-submit" onclick="submitCommentForm('{{ dream.id }}');">
+          <i class="feather icon-send"></i>
+        </button>
+      </div>
+
+      <form id="comment-create-{{ dream.id }}" action="{% url 'dream:commentary-create' dream.user.id dream.id %}" method="post" style="display: none;" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="content" id="hidden-comment-{{ dream.id }}">
+      </form>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<script>
+  function submitCommentForm(dreamId) {
+    const input = document.getElementById('comment-input-' + dreamId);
+    if (input.value.trim()) {
+      document.getElementById('hidden-comment-' + dreamId).value = input.value;
+      document.getElementById('comment-create-' + dreamId).submit();
+    }
+  }
+
+  // Allow submitting comment with Enter key
+  document.addEventListener('DOMContentLoaded', function() {
+    const commentInputs = document.querySelectorAll('[id^="comment-input-"]');
+    commentInputs.forEach(input => {
+      input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const dreamId = this.id.replace('comment-input-', '');
+          submitCommentForm(dreamId);
+        }
+      });
+    });
+  });
+</script>
+
 {% endblock %}

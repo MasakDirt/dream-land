@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import (
     Count,
@@ -7,29 +8,34 @@ from django.db.models import (
     Q,
     Value,
     IntegerField,
-    QuerySet
+    QuerySet,
 )
-from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
+from django.http import HttpRequest, HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse_lazy
+from django.views.decorators.http import require_POST
 from django.views.generic import (
     ListView,
     DetailView,
     CreateView,
     UpdateView,
     DeleteView,
-    View
+    View,
 )
 
 from dream.forms import (
     DreamFilterForm,
     DreamSearchForm,
     CommentaryForm,
-    DreamForm
+    DreamForm,
 )
 from dream.models import Dream, Symbol, Emotion, DreamLike, DreamDislike
+from dream.services.ai.agents.summary_agent import DreamsSummaryAgent
+from dream.services.ai.tools.summary_tools import get_user_statistic, UserStatisticParams
 from dream.views.abstract import ModelAddRemoveLike
-from dto.dto import DreamListDto, EmotionDto, SymbolDto
+from dto.dto import DreamListDto, SymbolDto, EmotionDto
+
+dreams_agent = DreamsSummaryAgent()
 
 
 class DreamListView(LoginRequiredMixin, ListView):
@@ -261,3 +267,14 @@ class DreamStatisticView(LoginRequiredMixin, View):
             "dream/dream_statistic.html",
             context=context
         )
+
+@login_required
+@require_POST
+def generate_dream_summary(request, user_pk: int):
+    """
+    POST /stats/generate-summary/
+    Generates an AI summary based on the user's data.
+    """
+
+    generated_summary = dreams_agent.gen_statistic_summary(user_pk)
+    return JsonResponse({"summary": generated_summary})
